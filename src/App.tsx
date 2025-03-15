@@ -13,7 +13,8 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleInputChange = (value: string) => {
-    const replacedValue = value.replace(/[^0-9\+\-\*\/\(\)\!\^SsRr\s]/g, '').toLocaleUpperCase();
+    const replacedValue = value.replace(/[^0-9+\-*/()!^.SsRr ]/g, '').toLocaleUpperCase();
+
     setExpression(replacedValue);
 
     if (replacedValue !== '') {
@@ -142,6 +143,8 @@ function App() {
               <pre className="bg-gray-100 p-4 rounded-md mt-2">S4 = 10</pre>
               <h2 className="text-xl font-bold mt-4">Factorial</h2>
               <pre className="bg-gray-100 p-4 rounded-md mt-2">4! = 24</pre>
+              <h2 className="text-xl font-bold mt-4">Decimal</h2>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">4.4 + .4 = 4.8</pre>
             </div>
             
             

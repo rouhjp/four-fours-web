@@ -13,6 +13,18 @@ describe("evaluateExpression", () => {
     expect(evaluateExpression("R4")).toBe("2");
   });
 
+  test("Float Point (.4)", () => {
+    expect(evaluateExpression(".4")).toBe("0.4");
+  })
+
+  test("Float Point (4.4)", () => {
+    expect(evaluateExpression("4.4")).toBe("4.4");
+  })
+
+  test("Negate (-4)", () => {
+    expect(evaluateExpression("-4")).toBe("-4");
+  });
+
   test("Addition (4+4)", () => {
     expect(evaluateExpression("4+4")).toBe("8");
   });

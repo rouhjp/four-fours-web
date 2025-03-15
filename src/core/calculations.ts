@@ -31,12 +31,13 @@ function isBinaryOperation(evaluable: Evaluable): evaluable is BinaryOperation {
 function evaluateNerdamer(expression: string): string {
   try {
     const evaluated = nerdamer(expression).evaluate().text('fractions');
-    if (/^[+-]?[0-9]+$/.test(evaluated)) {
+    if (isInteger(evaluated)) {
       return evaluated;
     }
     return nerdamer(expression).text('fractions');
   } catch (e) {
-    throw new Error(`internal error: invalid expression: ${expression} ${e}`);
+    console.error(e);
+    throw new Error(`internal error`);
   }
 }
 
@@ -110,7 +111,7 @@ function evaluate(evaluable: Evaluable): string {
  */
 function parse(expression: string): Evaluable {
   const normalized = expression.replace(/\s/g, '');
-  if (!/^[0-9-+/*^SR4!()]*$/.test(normalized)) {
+  if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
     throw new Error(`invalid character in expression: ${normalized}`);
   }
   if (normalized.length === 0) {
@@ -376,6 +377,34 @@ function parseUnaryOperation(expression: string): Evaluable {
     return {
       value: expression.replace('+', '')
     };
+  }
+  if (/^[0-9]*\.[0-9]+$/.test(expression)) {
+    const integer = expression.split('.')[0];
+    const decimal = expression.split('.')[1];
+    const division: Evaluable = {
+      type: 'Divide',
+      operands: [
+        {
+          value: decimal,
+        },
+        {
+          value: (10n ** BigInt(decimal.length)).toString(),
+        }
+      ]
+    }
+    if (integer.length === 0) {
+      return division;
+    } else {
+      return {
+        type: 'Add',
+        operands: [
+          {
+            value: integer,
+          },
+          division
+        ]
+      }
+    }
   }
   throw new Error(`invalid expression: ${expression}`);
 }
