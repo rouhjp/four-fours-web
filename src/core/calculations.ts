@@ -50,7 +50,7 @@ function isInteger(value: string): boolean {
  */
 function requireInteger(value: string, orElseThrow?: Error): string {
   if (!isInteger(value)) {
-    throw orElseThrow || new Error(`syntax error: operand must be an integer: ${value}`);
+    throw orElseThrow || new Error(`operand must be an integer: ${value}`);
   }
   return value;
 }
@@ -60,7 +60,11 @@ function requireInteger(value: string, orElseThrow?: Error): string {
  */
 export function evaluateExpression(expression: string) {
   const parsed = parse(expression);
-  return evaluate(parsed);
+  const evaluated = evaluate(parsed);
+  if (!isInteger(evaluated)) {
+    return nerdamer(evaluated).evaluate().text('decimals');
+  }
+  return evaluated;
 }
 
 /**
@@ -107,10 +111,10 @@ function evaluate(evaluable: Evaluable): string {
 function parse(expression: string): Evaluable {
   const normalized = expression.replace(/\s/g, '');
   if (!/^[0-9-+/*^SR4!()]*$/.test(normalized)) {
-    throw new Error(`syntax error: invalid character in expression: ${normalized}`);
+    throw new Error(`invalid character in expression: ${normalized}`);
   }
   if (normalized.length === 0) {
-    throw new Error('syntax error: empty expression');
+    throw new Error('empty expression');
   }
   return parseAddition(normalized);
 }
@@ -131,7 +135,7 @@ function parseAddition(expression: string): Evaluable {
     if (c === ')') {
       nest--;
       if (nest < 0) {
-        throw new Error('syntax error: unmatched bracket');
+        throw new Error('unmatched bracket');
       }
       continue;
     }
@@ -144,7 +148,7 @@ function parseAddition(expression: string): Evaluable {
         if (i === 0) {
           continue;
         }
-        throw new Error(`syntax error: missing left operand of ${c} operator`);
+        throw new Error(`missing left operand of ${c} operator`);
       }
       switch(operation) {
         case '+':
@@ -160,12 +164,12 @@ function parseAddition(expression: string): Evaluable {
     }
   }
   if (nest > 0) {
-    throw new Error('syntax error: unmatched bracket');
+    throw new Error('unmatched bracket');
   }
   if (found) {
     const right = expression.substring(startIndex);
     if (right.length === 0) {
-      throw new Error(`syntax error: missing right operand of ${operation} operator`);
+      throw new Error(`missing right operand of ${operation} operator`);
     }
     switch(operation) {
       case '+':
@@ -209,7 +213,7 @@ function parseMultiplication(expression: string): Evaluable {
     if (c === ')') {
       nest--;
       if (nest < 0) {
-        throw new Error('syntax error: unmatched bracket');
+        throw new Error('unmatched bracket');
       }
       continue;
     }
@@ -219,7 +223,7 @@ function parseMultiplication(expression: string): Evaluable {
     if (c === '*' || c === '/') {
       const left = expression.substring(startIndex, i);
       if (left.length === 0) {
-        throw new Error(`syntax error: missing left operand of ${c} operator`);
+        throw new Error(`missing left operand of ${c} operator`);
       }
       switch(operation) {
         case '*':
@@ -235,12 +239,12 @@ function parseMultiplication(expression: string): Evaluable {
     }
   }
   if (nest > 0) {
-    throw new Error('syntax error: unmatched bracket');
+    throw new Error('unmatched bracket');
   }
   if (found) {
     const right = expression.substring(startIndex);
     if (right.length === 0) {
-      throw new Error(`syntax error: missing right operand of ${operation} operator`);
+      throw new Error(`missing right operand of ${operation} operator`);
     }
     switch(operation) {
       case '*':
@@ -293,7 +297,7 @@ function parsePower(expression: string): Evaluable {
     if (c === ')') {
       nest--;
       if (nest < 0) {
-        throw new Error('syntax error: unmatched bracket');
+        throw new Error('unmatched bracket');
       }
       continue;
     }
@@ -304,7 +308,7 @@ function parsePower(expression: string): Evaluable {
       const left = expression.substring(0, i);
       const right = expression.substring(i + 1);
       if (left.length === 0 || right.length === 0) {
-        throw new Error('syntax error: missing left operand of ^ operator');
+        throw new Error('missing left operand of ^ operator');
       }
       return {
         type: 'Power',
@@ -316,7 +320,7 @@ function parsePower(expression: string): Evaluable {
     }
   }
   if (nest > 0) {
-    throw new Error('syntax error: unmatched bracket');
+    throw new Error('unmatched bracket');
   }
   return parseUnaryOperation(expression);
 }
@@ -326,7 +330,7 @@ function parseUnaryOperation(expression: string): Evaluable {
   const right = expression.substring(1);
   if (first === '-') {
     if (right.length === 0) {
-      throw new Error('syntax error: missing right operand of - operator');
+      throw new Error('missing right operand of - operator');
     }
     return {
       type: 'Negate',
@@ -335,7 +339,7 @@ function parseUnaryOperation(expression: string): Evaluable {
   }
   if (first === 'S') {
     if (right.length === 0) {
-      throw new Error('syntax error: missing operand of S operator');
+      throw new Error('missing operand of S operator');
     }
     return {
       type: 'Sum',
@@ -344,7 +348,7 @@ function parseUnaryOperation(expression: string): Evaluable {
   }
   if (first === 'R') {
     if (right.length === 0) {
-      throw new Error('syntax error: missing operand of R operator');
+      throw new Error('missing operand of R operator');
     }
     return {
       type: 'Root',
@@ -355,7 +359,7 @@ function parseUnaryOperation(expression: string): Evaluable {
   const left = expression.substring(0, expression.length - 1);
   if (last === '!') {
     if (left.length === 0) {
-      throw new Error('syntax error: missing left operand of ! operator');
+      throw new Error('missing left operand of ! operator');
     }
     return {
       type: 'Factorial',
@@ -364,7 +368,7 @@ function parseUnaryOperation(expression: string): Evaluable {
   }
   if (first === '(' && last === ')') {
     if (expression.length === 2) {
-      throw new Error('syntax error: empty bracket');
+      throw new Error('empty bracket');
     }
     return parseAddition(expression.substring(1, expression.length - 1));
   }
@@ -373,7 +377,7 @@ function parseUnaryOperation(expression: string): Evaluable {
       value: expression.replace('+', '')
     };
   }
-  throw new Error(`syntax error: invalid expression: ${expression}`);
+  throw new Error(`invalid expression: ${expression}`);
 }
 
 function sum(num: string): string {
