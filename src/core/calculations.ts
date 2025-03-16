@@ -76,8 +76,14 @@ function evaluate(evaluable: Evaluable): string {
     const operand = evaluate(evaluable.operand);
     switch(evaluable.type) {
       case "Sum":
+        if (operand.length > 12) {
+          throw new Error(`the operand of sum operator is too big`);
+        }
         return requireInteger(sum(requireInteger(operand)));
       case "Factorial":
+        if (operand.length > 2) {
+          throw new Error(`the operand of factorial operator is too big`);
+        }
         return requireInteger(evaluateNerdamer(`factorial(${requireInteger(operand)})`));
       case "Root":
         return evaluateNerdamer(`sqrt(${operand})`);
@@ -97,6 +103,9 @@ function evaluate(evaluable: Evaluable): string {
       case "Divide":
         return evaluateNerdamer(`${operands.join('/')}`);
       case "Power":
+        if (operands[1].length > 4) {
+          throw new Error(`the exponent of power operator is too big`);
+        }
         return evaluateNerdamer(`${operands[0]}^${operands[1]}`);
     }
   }
