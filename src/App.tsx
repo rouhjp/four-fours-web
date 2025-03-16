@@ -13,7 +13,7 @@ function App() {
         <div className="w-8">
           {mode==="Solve" && (
             <FaChevronLeft
-              className=" text-gray-500 w-6 h-6 cursor-pointer"
+              className=" text-gray-500 w-8 h-6 cursor-pointer"
               onClick={() => setMode("Free")}
             />
           )}
@@ -29,7 +29,7 @@ function App() {
         <div className="w-8">
           {mode==="Free" && (
             <FaChevronRight
-              className="text-gray-500 w-6 h-6 cursor-pointer"
+              className="text-gray-500 w-8 h-6 cursor-pointer"
               onClick={() => setMode("Solve")}
             />
           )}
