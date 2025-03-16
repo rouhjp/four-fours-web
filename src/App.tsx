@@ -19,8 +19,12 @@ function App() {
           )}
         </div>
         <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-          {mode==="Solve" && <SolveModeCard />}
-          {mode==="Free" && <FreeModeCard />}
+          <div className={mode === "Free" ? "" : "hidden"}>
+            <FreeModeCard />
+          </div>
+          <div className={mode === "Solve" ? "" : "hidden"}>
+            <SolveModeCard />
+          </div>
         </div>
         <div className="w-8">
           {mode==="Free" && (

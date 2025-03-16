@@ -1,57 +1,12 @@
 import { JSX, useState } from "react";
-import { evaluateExpression } from "../core/calculations";
-import { truncate } from "../core/utils";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import RuleModal from "./RuleModal";
+import { useExpression } from "../hooks/useExpression";
 
 export default function FreeModeCard(): JSX.Element {
-  const [expression, setExpression] = useState('');
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>('Input something above');
+  const [expression, result, error, warning, handleInputChange] = useExpression();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleInputChange = (value: string) => {
-    const replacedValue = value.replace(/[^0-9+\-*/()!^.SsRr ]/g, '').toLocaleUpperCase();
-
-    setExpression(replacedValue);
-
-    if (replacedValue !== '') {
-      try {
-        const evaluationResult = evaluateExpression(replacedValue);
-        if (evaluationResult.includes('.')) {
-          setResult(truncate(evaluationResult, 16));
-          setError('Result is not an integer');
-        } else if (evaluationResult.length > 16) {
-          setResult(truncate(evaluationResult, 16));
-          setError('Result is too long');
-        } else {
-          setResult(evaluationResult);
-          setError(null);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError('Something went wrong');
-        }
-      }
-    } else {
-      setResult(null);
-      setError(null);
-    }
-
-    if (replacedValue.length === 0) {
-      setWarning('Input something above');
-    } else if (replacedValue.match(/[012356789]/)) {
-      setWarning('Using a number other than 4');
-    } else if (replacedValue.match(/4/g)?.length !== 4) {
-      setWarning('Exactly four 4s are required');
-    } else {
-      setWarning(null);
-    }
-  };
 
   return (
     <>
