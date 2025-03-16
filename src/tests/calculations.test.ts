@@ -13,6 +13,10 @@ describe("evaluateExpression", () => {
     expect(evaluateExpression("R4")).toBe("2");
   });
 
+  test("Sum, Root and Factorial (SR4!)", () => {
+    expect(evaluateExpression("SR4!")).toBe("6");
+  });
+
   test("Float Point (.4)", () => {
     expect(evaluateExpression(".4")).toBe("0.4");
   })

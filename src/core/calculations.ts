@@ -329,6 +329,17 @@ function parsePower(expression: string): Evaluable {
 function parseUnaryOperation(expression: string): Evaluable {
   const first = expression[0];
   const right = expression.substring(1);
+  const last = expression[expression.length - 1];
+  const left = expression.substring(0, expression.length - 1);
+  if (last === '!') {
+    if (left.length === 0) {
+      throw new Error('missing left operand of ! operator');
+    }
+    return {
+      type: 'Factorial',
+      operand: parseAddition(left),
+    };
+  }
   if (first === '-') {
     if (right.length === 0) {
       throw new Error('missing right operand of - operator');
@@ -354,17 +365,6 @@ function parseUnaryOperation(expression: string): Evaluable {
     return {
       type: 'Root',
       operand: parseAddition(right),
-    };
-  }
-  const last = expression[expression.length - 1];
-  const left = expression.substring(0, expression.length - 1);
-  if (last === '!') {
-    if (left.length === 0) {
-      throw new Error('missing left operand of ! operator');
-    }
-    return {
-      type: 'Factorial',
-      operand: parseAddition(left),
     };
   }
   if (first === '(' && last === ')') {
