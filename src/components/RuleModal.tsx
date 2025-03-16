@@ -35,7 +35,7 @@ export default function RuleModal({
 
             <div className='px-6 pb-8'>
               <ul className="list-disc pl-5 mb-4 text-gray-800">
-                <li>You must use exactly four 4s</li>
+                <li>You must use exactly four 4s.</li>
                 <li>You cannot use any numbers other than 4.</li>
                 <li>The following operations are allowed.</li>
               </ul>

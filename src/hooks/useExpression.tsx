@@ -55,7 +55,7 @@ export const useExpression = (question?: number) => {
       setWarning('You must use exactly four 4s in the expression');
     } else {
       if (question != undefined && result && result !== question.toString()) {
-        setWarning('Not match');
+        setWarning('Not matched');
       } else {
         setWarning(null);
       }
