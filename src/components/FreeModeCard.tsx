@@ -10,6 +10,7 @@ export default function FreeModeCard(): JSX.Element {
 
   return (
     <>
+      <div className="absolute top-2 left-4 text-gray-300">Free Input Mode</div>
       <p className={`text-3xl font-bold text-center ${!expression || error ? "text-gray-300" : "text-gray-800"} mb-6 h-12`}>
         {result !== null ? result : '?'}
       </p>

@@ -5,7 +5,7 @@ import { MdCheckCircle } from "react-icons/md";
 import { TbPlayerTrackNextFilled } from "react-icons/tb";
 import { useExpression } from "../hooks/useExpression";
 
-export default function FreeModeCard(): JSX.Element {
+export default function QuizModeCard(): JSX.Element {
   const [question, setQuestion] = useState<number>(random(1, 3000));
   const [expression, result, error, warning, handleInputChange] = useExpression(question);
   const solved = !error && !warning && result === question.toString();
@@ -17,6 +17,7 @@ export default function FreeModeCard(): JSX.Element {
 
   return (
     <>
+      <div className="absolute top-2 left-4 text-gray-300">Quiz Mode</div>
       <div className="absolute top-3 right-4">
         <button
           className="text-gray-600 text-lg font-semibold transition-all hover:text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-0 active:ring-0 p-2 rounded-md"

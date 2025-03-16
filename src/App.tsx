@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import FreeModeCard from './components/FreeModeCard';
-import SolveModeCard from './components/SolveModeCard';
+import QuizModeCard from './components/QuizModeCard';
 
 function App() {
   const [mode, setMode] = useState<"Free" | "Solve">("Free");
@@ -23,7 +23,7 @@ function App() {
             <FreeModeCard />
           </div>
           <div className={mode === "Solve" ? "" : "hidden"}>
-            <SolveModeCard />
+            <QuizModeCard />
           </div>
         </div>
         <div className="w-8">
