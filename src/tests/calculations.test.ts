@@ -112,4 +112,8 @@ describe("evaluateExpression", () => {
   test("Algebraic Root Addition ((1/R2)-(1/R2))", () => {
     expect(evaluateExpression("(1/R2)-(1/R2)")).toBe("0");
   });
+
+  test("Algebraic Root Simplification (2/R2-R2)", () => {
+    expect(evaluateExpression("2/R2-R2")).toBe("0");
+  });
 });

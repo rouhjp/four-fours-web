@@ -36,6 +36,9 @@ function evaluateNerdamer(expression: string): string {
     }
     return nerdamer(expression).text('fractions');
   } catch (e) {
+    if (e instanceof Error && e.message.includes('Division by zero')) {
+      throw new Error(`division by zero not allowed`);
+    }
     console.error(e);
     throw new Error(`internal error`);
   }
