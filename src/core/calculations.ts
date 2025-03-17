@@ -95,13 +95,13 @@ function evaluate(evaluable: Evaluable): string {
     const operands = evaluable.operands.map(operand => evaluate(operand));
     switch(evaluable.type) {
       case "Add":
-        return evaluateNerdamer(`${operands.join('+')}`);
+        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('+')}`);
       case "Subtract":
-        return evaluateNerdamer(`${operands.join('-')}`);
+        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('-')}`);
       case "Multiply":
-        return evaluateNerdamer(`${operands.join('*')}`);
+        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('*')}`);
       case "Divide":
-        return evaluateNerdamer(`${operands.join('/')}`);
+        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('/')}`);
       case "Power":
         if (operands[1].length > 4) {
           throw new Error(`the exponent of power operator is too big`);

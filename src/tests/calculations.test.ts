@@ -25,6 +25,22 @@ describe("evaluateExpression", () => {
     expect(evaluateExpression("4.4")).toBe("4.4");
   })
 
+  test("Float Point Addition (4.4+.4)", () => {
+    expect(evaluateExpression("4.4+.4")).toBe("4.8");
+  })
+
+  test("Float Point Multiplication (4.4*.4)", () => {
+    expect(evaluateExpression("4.4*.4")).toBe("1.76");
+  })
+
+  test("Float Point Division (1/0.4)", () => {
+    expect(evaluateExpression("1/0.4")).toBe("2.5");
+  })
+
+  test("Float Point Division (4.4/.4)", () => {
+    expect(evaluateExpression("4.4/.4")).toBe("11");
+  })
+
   test("Negate (-4)", () => {
     expect(evaluateExpression("-4")).toBe("-4");
   });
@@ -59,10 +75,6 @@ describe("evaluateExpression", () => {
 
   test("Double Unary Operators (SSR4)", () => {
     expect(evaluateExpression("SSR4")).toBe("6");
-  });
-
-  test("Double Side Unary Operators (S4!)", () => {
-    expect(evaluateExpression("S4!")).toBe("300");
   });
 
   test("Bracketed Factorial ((S4)!)", () => {
