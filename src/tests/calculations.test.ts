@@ -104,4 +104,12 @@ describe("evaluateExpression", () => {
   test("Multiply and Divide Order (SSR4/R4*SR4)", () => {
     expect(evaluateExpression("SSR4/R4*SR4")).toBe("9");
   });
+
+  test("Algebraic Fraction Addition ((1/2)+(1/2))", () => {
+    expect(evaluateExpression("(1/2)+(1/2)")).toBe("1");
+  });
+
+  test("Algebraic Root Addition ((1/R2)-(1/R2))", () => {
+    expect(evaluateExpression("(1/R2)-(1/R2)")).toBe("0");
+  });
 });
