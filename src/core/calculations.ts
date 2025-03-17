@@ -53,26 +53,22 @@ function isInteger(value: string): boolean {
   return /^[+-]?[0-9]+$/.test(value);
 }
 
-/**
- * 値が整数かどうかチェックし、そのまま値を返します。
- * 整数でない場合は、エラーをスローします。
- */
-function requireInteger(value: string): string {
+function requireInteger(value: string, message: string) {
   if (!isInteger(value)) {
-    throw new Error(`operand must be an integer: ${value}`);
+    throw new Error(message);
   }
-  return value;
 }
 
-/**
- * 値が0か正の整数かどうかチェックし、そのまま値を返します。
- * 負の整数の場合は、エラーをスローします。
- */
-function requireZeroOrPositiveInteger(value: string): string {
-  if (!isInteger(value) || BigInt(value) < 0n) {
-    throw new Error(`operand must be a zero or positive integer: ${value}`);
+function requirePositiveOrZero(value: string, message: string) {
+  if (BigInt(value) < 0n) {
+    throw new Error(message);
   }
-  return value;
+}
+
+function requireMaxDigit(value: string, maxDigits: number, message: string) {
+  if (value.length > maxDigits) {
+    throw new Error(message);
+  }
 }
 
 /**
@@ -95,17 +91,18 @@ function evaluate(evaluable: Evaluable): string {
     const operand = evaluate(evaluable.operand);
     switch(evaluable.type) {
       case "Sum":
-        if (operand.length > 12) {
-          throw new Error(`the operand of sum operator is too big`);
-        }
-        return requireInteger(sum(requireZeroOrPositiveInteger(operand)));
+        requireInteger(operand, "the operand of sum operator must be an integer");
+        requirePositiveOrZero(operand, `the operand of sum operator must be a positive integer: ${operand}`);
+        requireMaxDigit(operand, 12, `the operand of sum operator is too big`);
+        return sum(operand);
       case "Factorial":
-        if (operand.length > 2) {
-          throw new Error(`the operand of factorial operator is too big`);
-        }
-        return requireInteger(evaluateNerdamer(`factorial(${requireZeroOrPositiveInteger(operand)})`));
+        requireInteger(operand, "the operand of factorial operator must be an integer");
+        requirePositiveOrZero(operand, `the operand of factorial operator must be a positive integer: ${operand}`);
+        requireMaxDigit(operand, 2, `the operand of factorial operator is too big`);
+        return evaluateNerdamer(`factorial(${operand})`);
       case "Root":
-        return evaluateNerdamer(`sqrt(${requireZeroOrPositiveInteger(operand)})`);
+        requirePositiveOrZero(operand, `the operand of root operator must be a positive integer: ${operand}`);
+        return evaluateNerdamer(`sqrt(${operand})`);
       case "Negate":
         return evaluateNerdamer(`(-1*(${operand}))`);
     }
@@ -122,16 +119,16 @@ function evaluate(evaluable: Evaluable): string {
       case "Divide":
         return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('/')}`);
       case "Power":
-        if (operands[1].length > 4) {
-          throw new Error(`the exponent of power operator is too big`);
-        }
+        requireMaxDigit(operands[1], 4, `the exponent of power operator is too big`);
         return evaluateNerdamer(`${operands[0]}^${operands[1]}`);
     }
   }
   if(isConstant(evaluable)) {
-    return requireInteger(evaluable.value);
+    requireInteger(evaluable.value, `invalid constant: ${evaluable.value}`);
+    return evaluable.value;
   }
-  throw new Error(`internal error: unexpected evaluable type: ${evaluable}`);
+  console.error(`unexpected evaluation type: ${evaluable}`);
+  throw new Error('internal error');
 }
 
 /**
@@ -140,7 +137,8 @@ function evaluate(evaluable: Evaluable): string {
 function parse(expression: string): Evaluable {
   const normalized = expression.replace(/\s/g, '');
   if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
-    throw new Error(`invalid character in expression: ${normalized}`);
+    const invalidCharacter = normalized.match(/[^0-9-+/*^SR4!.()]/)?.[0];
+    throw new Error(`invalid character in expression: ${invalidCharacter}`);
   }
   if (normalized.length === 0) {
     throw new Error('empty expression');
@@ -359,15 +357,6 @@ function parseUnaryOperation(expression: string): Evaluable {
   const right = expression.substring(1);
   const last = expression[expression.length - 1];
   const left = expression.substring(0, expression.length - 1);
-  if (last === '!') {
-    if (left.length === 0) {
-      throw new Error('missing left operand of ! operator');
-    }
-    return {
-      type: 'Factorial',
-      operand: parseAddition(left),
-    };
-  }
   if (first === '-') {
     if (right.length === 0) {
       throw new Error('missing right operand of - operator');
@@ -400,6 +389,15 @@ function parseUnaryOperation(expression: string): Evaluable {
       throw new Error('empty bracket');
     }
     return parseAddition(expression.substring(1, expression.length - 1));
+  }
+  if (last === '!') {
+    if (left.length === 0) {
+      throw new Error('missing left operand of ! operator');
+    }
+    return {
+      type: 'Factorial',
+      operand: parseAddition(left),
+    };
   }
   if (isInteger(expression)) {
     return {
