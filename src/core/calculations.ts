@@ -36,8 +36,13 @@ function evaluateNerdamer(expression: string): string {
     }
     return nerdamer(expression).text('fractions');
   } catch (e) {
-    if (e instanceof Error && e.message.includes('Division by zero')) {
-      throw new Error(`division by zero not allowed`);
+    if (e instanceof Error) {
+      if (e.message.includes('Division by zero')) {
+        throw new Error(`division by zero not allowed`);
+      }
+      if (e.message.includes('0^0 is undefined')) {
+        throw new Error(`zero to the power of zero not allowed`);
+      }
     }
     console.error(e);
     throw new Error(`internal error`);
@@ -52,9 +57,20 @@ function isInteger(value: string): boolean {
  * 値が整数かどうかチェックし、そのまま値を返します。
  * 整数でない場合は、エラーをスローします。
  */
-function requireInteger(value: string, orElseThrow?: Error): string {
+function requireInteger(value: string): string {
   if (!isInteger(value)) {
-    throw orElseThrow || new Error(`operand must be an integer: ${value}`);
+    throw new Error(`operand must be an integer: ${value}`);
+  }
+  return value;
+}
+
+/**
+ * 値が0か正の整数かどうかチェックし、そのまま値を返します。
+ * 負の整数の場合は、エラーをスローします。
+ */
+function requireZeroOrPositiveInteger(value: string): string {
+  if (!isInteger(value) || BigInt(value) < 0n) {
+    throw new Error(`operand must be a zero or positive integer: ${value}`);
   }
   return value;
 }
@@ -82,14 +98,14 @@ function evaluate(evaluable: Evaluable): string {
         if (operand.length > 12) {
           throw new Error(`the operand of sum operator is too big`);
         }
-        return requireInteger(sum(requireInteger(operand)));
+        return requireInteger(sum(requireZeroOrPositiveInteger(operand)));
       case "Factorial":
         if (operand.length > 2) {
           throw new Error(`the operand of factorial operator is too big`);
         }
-        return requireInteger(evaluateNerdamer(`factorial(${requireInteger(operand)})`));
+        return requireInteger(evaluateNerdamer(`factorial(${requireZeroOrPositiveInteger(operand)})`));
       case "Root":
-        return evaluateNerdamer(`sqrt(${operand})`);
+        return evaluateNerdamer(`sqrt(${requireZeroOrPositiveInteger(operand)})`);
       case "Negate":
         return evaluateNerdamer(`(-1*(${operand}))`);
     }
