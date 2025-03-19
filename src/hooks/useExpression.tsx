@@ -2,7 +2,7 @@ import { useState } from "react";
 import { evaluateExpression } from "../core/calculations";
 import { truncate } from "../core/utils";
 
-export const useExpression = (question?: number) => {
+export const useExpression = (question?: number, onSolved?: (expression: string) => void) => {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +59,10 @@ export const useExpression = (question?: number) => {
       } else {
         setWarning(null);
       }
+    }
+
+    if (question != undefined && result && result === question.toString()) {
+      onSolved && onSolved(value);
     }
   }
 

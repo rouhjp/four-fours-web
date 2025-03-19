@@ -2,19 +2,23 @@ import { useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import FreeModeCard from './components/FreeModeCard';
 import QuizModeCard from './components/QuizModeCard';
+import StairModeCard from './components/StairModeCard';
+
+const MODES = ["Free", "Quiz", "Stair"] as const;
 
 function App() {
-  const [mode, setMode] = useState<"Free" | "Solve">("Free");
+  const [mode, setMode] = useState<typeof MODES[number]>("Free");
+  const modeIndex = MODES.indexOf(mode);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold text-gray-800 mb-8">Four Fours</h1>
       <div className="flex items-center justify-center mb-8 w-full">
         <div className="w-8">
-          {mode==="Solve" && (
+          {modeIndex>0 && (
             <FaChevronLeft
               className=" text-gray-500 w-8 h-6 cursor-pointer"
-              onClick={() => setMode("Free")}
+              onClick={() => setMode(MODES[modeIndex - 1])}
             />
           )}
         </div>
@@ -22,15 +26,18 @@ function App() {
           <div className={mode === "Free" ? "" : "hidden"}>
             <FreeModeCard />
           </div>
-          <div className={mode === "Solve" ? "" : "hidden"}>
+          <div className={mode === "Quiz" ? "" : "hidden"}>
             <QuizModeCard />
+          </div>
+          <div className={mode === "Stair" ? "" : "hidden"}>
+            <StairModeCard />
           </div>
         </div>
         <div className="w-8">
-          {mode==="Free" && (
+          {modeIndex<MODES.length - 1 && (
             <FaChevronRight
               className="text-gray-500 w-8 h-6 cursor-pointer"
-              onClick={() => setMode("Solve")}
+              onClick={() => setMode(MODES[modeIndex + 1])}
             />
           )}
         </div>
