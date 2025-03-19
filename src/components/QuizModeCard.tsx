@@ -2,8 +2,8 @@ import { JSX, useState } from "react";
 import { random } from "../core/utils";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
-import { TbPlayerTrackNextFilled } from "react-icons/tb";
 import { useExpression } from "../hooks/useExpression";
+import { GrUpdate } from "react-icons/gr";
 
 export default function QuizModeCard(): JSX.Element {
   const [question, setQuestion] = useState<number>(random(1, 3000));
@@ -23,7 +23,7 @@ export default function QuizModeCard(): JSX.Element {
           className="text-gray-600 text-lg font-semibold transition-all hover:text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-0 active:ring-0 p-2 rounded-md"
           onClick={newQuestion}
           >
-          <TbPlayerTrackNextFilled />
+          <GrUpdate />
         </button>
       </div>
       <h1 className="text-2xl font-bold text-center mb-2">{`${question} = ?`}</h1>
