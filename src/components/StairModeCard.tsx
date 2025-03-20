@@ -3,6 +3,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import { useExpression } from "../hooks/useExpression";
 import { RiArrowLeftDoubleFill, RiArrowLeftSLine, RiArrowRightDoubleFill, RiArrowRightSLine } from "react-icons/ri";
+import { getAnswer } from "../core/answers";
 
 const QUESTION_MIN = 1;
 const QUESTION_MAX = 2100;
@@ -49,10 +50,14 @@ export default function StairModeCard(): JSX.Element {
     }
   };
 
-  const handleClick = (update: () => void) => {
+  const handleMoveButtonClick = (update: () => void) => {
     if (!isLongPress.current) {
       update();
     }
+  };
+
+  const handleAnswerButtonClick = () => {
+    handleInputChange(getAnswer(question));
   };
 
   return (
@@ -66,7 +71,7 @@ export default function StairModeCard(): JSX.Element {
           onMouseLeave={() => {
             if (isLongPress.current) handleMouseUp();
           }}
-          onClick={() => handleClick(() => setQuestion(q => Math.max(q - 30, QUESTION_MIN)))}
+          onClick={() => handleMoveButtonClick(() => setQuestion(q => Math.max(q - 30, QUESTION_MIN)))}
           disabled={question === QUESTION_MIN}
         >
           <RiArrowLeftDoubleFill />
@@ -78,7 +83,7 @@ export default function StairModeCard(): JSX.Element {
           onMouseLeave={() => {
             if (isLongPress.current) handleMouseUp();
           }}
-          onClick={() => handleClick(() => setQuestion(q => Math.max(q - 1, QUESTION_MIN)))}
+          onClick={() => handleMoveButtonClick(() => setQuestion(q => Math.max(q - 1, QUESTION_MIN)))}
           disabled={question === QUESTION_MIN}
         >
           <RiArrowLeftSLine />
@@ -92,7 +97,7 @@ export default function StairModeCard(): JSX.Element {
           onMouseLeave={() => {
             if (isLongPress.current) handleMouseUp();
           }}
-          onClick={() => handleClick(() => setQuestion(q => Math.min(q + 1, QUESTION_MAX)))}
+          onClick={() => handleMoveButtonClick(() => setQuestion(q => Math.min(q + 1, QUESTION_MAX)))}
           disabled={question === QUESTION_MAX}
         >
           <RiArrowRightSLine />
@@ -104,7 +109,7 @@ export default function StairModeCard(): JSX.Element {
           onMouseLeave={() => {
             if (isLongPress.current) handleMouseUp();
           }}
-          onClick={() => handleClick(() => setQuestion(q => Math.min(q + 30, QUESTION_MAX)))}
+          onClick={() => handleMoveButtonClick(() => setQuestion(q => Math.min(q + 30, QUESTION_MAX)))}
           disabled={question === QUESTION_MAX}
         >
           <RiArrowRightDoubleFill />
@@ -115,13 +120,21 @@ export default function StairModeCard(): JSX.Element {
         {result !== null ? result : "?"}
       </p>
 
-      <input
-        type="text"
-        value={expression}
-        onChange={(e) => handleInputChange(e.target.value)}
-        placeholder="Enter expression"
-        className="w-full p-3 mb-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <div className="relative">
+        <div 
+          className="absolute top-0 right-2 text-gray-300 hover:text-red-600 cursor-pointer"
+          onClick={handleAnswerButtonClick}
+        >
+          see answer
+        </div>
+        <input
+          type="text"
+          value={expression}
+          onChange={(e) => handleInputChange(e.target.value)}
+          placeholder="Enter expression"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
       <div className="h-8">
         {error && (

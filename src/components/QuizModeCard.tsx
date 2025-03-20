@@ -4,6 +4,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import { useExpression } from "../hooks/useExpression";
 import { GrUpdate } from "react-icons/gr";
+import { getAnswer } from "../core/answers";
 
 export default function QuizModeCard(): JSX.Element {
   const [question, setQuestion] = useState<number>(random(1, 3000));
@@ -13,7 +14,11 @@ export default function QuizModeCard(): JSX.Element {
   const newQuestion = () => {
     setQuestion(random(1, 3000));
     handleInputChange('');
-  }
+  };
+
+  const handleAnswerButtonClick = () => {
+    handleInputChange(getAnswer(question));
+  };
 
   return (
     <>
@@ -31,13 +36,21 @@ export default function QuizModeCard(): JSX.Element {
         {result !== null ? result : '?'}
       </p>
 
-      <input
-        type="text"
-        value={expression}
-        onChange={(e) => handleInputChange(e.target.value)}
-        placeholder="Enter expression"
-        className="w-full p-3 mb-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <div className="relative">
+        <div 
+            className="absolute top-0 right-2 text-gray-300 hover:text-red-600 cursor-pointer"
+            onClick={handleAnswerButtonClick}
+          >
+          see answer
+        </div>
+        <input
+          type="text"
+          value={expression}
+          onChange={(e) => handleInputChange(e.target.value)}
+          placeholder="Enter expression"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
       <div className='h-8'>
         {error &&

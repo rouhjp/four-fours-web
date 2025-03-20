@@ -1,3 +1,4 @@
+import { getAnswer } from "../core/answers";
 import { evaluateExpression } from "../core/calculations";
 
 describe("evaluateExpression", () => {
@@ -119,5 +120,14 @@ describe("evaluateExpression", () => {
 
   test("Algebraic Root Simplification (2/R2-R2)", () => {
     expect(evaluateExpression("2/R2-R2")).toBe("0");
+  });
+});
+
+describe("verifyAnswers", () => {
+  test("Verify All Answers", () => {
+    for(let i = 0; i<=3000; i++) {
+      const answer = getAnswer(i);
+      expect(evaluateExpression(answer)).toBe(i.toString());
+    }
   });
 });
