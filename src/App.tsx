@@ -43,9 +43,10 @@ function App() {
         </div>
       </div>
 
-      <p className="mt-8 text-gray-500 text-center">
-        This website was developed by <a href="https://twitter.com/kawaiiseeker" target="_blank" rel="noopener noreferrer">@kawaiiseeker</a>.
-      </p>
+      <div className='mt-8 text-gray-500 text-center'>
+        <p>This website was developed by <a className="underline" href="https://twitter.com/kawaiiseeker" target="_blank" rel="noopener noreferrer">@kawaiiseeker</a>.</p>
+        <p>The source code is available on <a className="underline" href='https://github.com/rouhjp/four-fours-web' target='_blank'>GitHub</a>.</p>
+      </div>
     </div>
   );
 }

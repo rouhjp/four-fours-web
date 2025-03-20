@@ -135,7 +135,11 @@ function evaluate(evaluable: Evaluable): string {
  * 独自記法の式を解析し、計算用オブジェクトに変換します。
  */
 function parse(expression: string): Evaluable {
-  const normalized = expression.replace(/\s/g, '');
+  const normalized = expression.replace(/\s/g, '')
+    .replace('√', 'R')
+    .replace('∑', 'S')
+    .replace('×', '*')
+    .replace('÷', '/');
   if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
     const invalidCharacter = normalized.match(/[^0-9-+/*^SR4!.()]/)?.[0];
     throw new Error(`invalid character in expression: ${invalidCharacter}`);
@@ -432,7 +436,46 @@ function parseUnaryOperation(expression: string): Evaluable {
       }
     }
   }
+  if (/^[0-9]*\.\([0-9]+\)$/.test(expression)) {
+    const integer = expression.split('.')[0];
+    const repeated = expression.split('.')[1].replace('(', '').replace(')', '');
+    const division = parseRepeatingDecimal(repeated);
+    if (integer.length === 0) {
+      return division;
+    } else {
+      return {
+        type: 'Add',
+        operands: [
+          {
+            value: integer,
+          },
+          division
+        ]
+      }
+    }
+  }
+
   throw new Error(`invalid expression: ${expression}`);
+}
+
+function parseRepeatingDecimal(repeatingExpression: string): Evaluable {
+  const repeating = BigInt(repeatingExpression);
+  const factor = BigInt(10) ** BigInt(repeatingExpression.length);
+
+  const denominator = factor - BigInt(1);
+  const numerator = repeating;
+  const divisor = gcd(numerator, denominator);
+  return {
+    type: 'Divide',
+    operands: [
+      { value: (numerator / divisor).toString() },
+      { value: (denominator / divisor).toString() },
+    ]
+  }
+}
+
+function gcd(a: bigint, b: bigint): bigint {
+  return b === BigInt(0) ? a : gcd(b, a % b);
 }
 
 function sum(num: string): string {

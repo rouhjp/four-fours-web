@@ -18,28 +18,36 @@ describe("evaluateExpression", () => {
     expect(evaluateExpression("S4!")).toBe("300");
   });
 
-  test("Float Point (.4)", () => {
+  test("Decimal (.4)", () => {
     expect(evaluateExpression(".4")).toBe("0.4");
   });
 
-  test("Float Point (4.4)", () => {
+  test("Decimal (4.4)", () => {
     expect(evaluateExpression("4.4")).toBe("4.4");
   });
 
-  test("Float Point Addition (4.4+.4)", () => {
+  test("Decimal Addition (4.4+.4)", () => {
     expect(evaluateExpression("4.4+.4")).toBe("4.8");
   });
 
-  test("Float Point Multiplication (4.4*.4)", () => {
+  test("Decimal Multiplication (4.4*.4)", () => {
     expect(evaluateExpression("4.4*.4")).toBe("1.76");
   });
 
-  test("Float Point Division (1/0.4)", () => {
+  test("Decimal Division (1/0.4)", () => {
     expect(evaluateExpression("1/0.4")).toBe("2.5");
   });
 
-  test("Float Point Division (4.4/.4)", () => {
+  test("Decimal Division (4.4/.4)", () => {
     expect(evaluateExpression("4.4/.4")).toBe("11");
+  });
+
+  test("Repating Decimal (.(4)*9)", () => {
+    expect(evaluateExpression(".(4)*9")).toBe("4");
+  });
+
+  test("Repating Decimal (.(3)*3)", () => {
+    expect(evaluateExpression(".(3)*3")).toBe("1");
   });
 
   test("Negate (-4)", () => {

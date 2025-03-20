@@ -16,7 +16,7 @@ export const useExpression = (question?: number, onSolved?: (expression: string)
       setWarning('Input something above');
     }
 
-    const replacedValue = value.replace(/[^0-9+\-*/()!^.SsRr ]/g, '').toLocaleUpperCase();
+    const replacedValue = value.replace(/[^0-9+\-*/()!^.SsRr√Σ÷× ]/g, '').toUpperCase();
     let result = "";
     
     setExpression(replacedValue);

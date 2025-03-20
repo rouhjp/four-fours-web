@@ -40,7 +40,7 @@ export default function RuleModal({
                 <li>The following operations are allowed.</li>
               </ul>
               <h2 className="text-xl font-bold">Addition</h2>
-              <pre className="bg-gray-100 p-4 rounded-md mt-2">44 + 4 = 48</pre>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">4 + 4 = 8</pre>
               <h2 className="text-xl font-bold mt-4">Subtraction</h2>
               <pre className="bg-gray-100 p-4 rounded-md mt-2">4 - 4 = 0</pre>
               <h2 className="text-xl font-bold mt-4">Multiplication</h2>
@@ -49,14 +49,24 @@ export default function RuleModal({
               <pre className="bg-gray-100 p-4 rounded-md mt-2">4 / 4 = 1</pre>
               <h2 className="text-xl font-bold mt-4">Exponentiation</h2>
               <pre className="bg-gray-100 p-4 rounded-md mt-2">4 ^ 4 = 256</pre>
+              <h2 className="text-xl font-bold mt-4">Concatenation</h2>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">44 = 44</pre>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">444 = 444</pre>
               <h2 className="text-xl font-bold mt-4">Square Root</h2>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">√4 = 2</pre>
               <pre className="bg-gray-100 p-4 rounded-md mt-2">R4 = 2</pre>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">R(4 * 4) = 4</pre>
               <h2 className="text-xl font-bold mt-4">Sum</h2>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">Σ4 = 10</pre>
               <pre className="bg-gray-100 p-4 rounded-md mt-2">S4 = 10</pre>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">S(4 + 4) = 36</pre>
               <h2 className="text-xl font-bold mt-4">Factorial</h2>
               <pre className="bg-gray-100 p-4 rounded-md mt-2">4! = 24</pre>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">(4 + 4)! = 40320</pre>
               <h2 className="text-xl font-bold mt-4">Decimal</h2>
-              <pre className="bg-gray-100 p-4 rounded-md mt-2">4.4 + .4 = 4.8</pre>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">4.4 - .4 = 4</pre>
+              <h2 className="text-xl font-bold mt-4">Repeating Decimal</h2>
+              <pre className="bg-gray-100 p-4 rounded-md mt-2">.(4) = 0.44444...</pre>
             </div>
           </div>
         </div>
