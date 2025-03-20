@@ -6,7 +6,7 @@ import { RiArrowLeftDoubleFill, RiArrowLeftSLine, RiArrowRightDoubleFill, RiArro
 import { getAnswer } from "../core/answers";
 
 const QUESTION_MIN = 1;
-const QUESTION_MAX = 2100;
+const QUESTION_MAX = 3000;
 
 export default function StairModeCard(): JSX.Element {
   const [question, setQuestion] = useState<number>(1);
