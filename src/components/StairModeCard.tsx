@@ -28,7 +28,7 @@ export default function StairModeCard(): JSX.Element {
     if (!solved && answers[question]) {
       handleInputChange(answers[question]);
     }
-  }, [question]);
+  }, [question, answers, handleInputChange, solved]);
 
   const handleMouseDown = (update: () => void) => {
     isLongPress.current = false;

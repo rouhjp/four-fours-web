@@ -62,7 +62,9 @@ export const useExpression = (question?: number, onSolved?: (expression: string)
     }
 
     if (question != undefined && result && result === question.toString()) {
-      onSolved && onSolved(value);
+      if (onSolved) {
+        onSolved(value);
+      }
     }
   }
 
