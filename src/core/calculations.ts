@@ -23,32 +23,6 @@ function isBinaryOperation(evaluable: Evaluable): evaluable is BinaryOperation {
   return "operands" in evaluable;
 }
 
-/**
- * nerdamer を利用して式を評価します。
- * nerdamer による評価後が整数であれば評価した値を、
- * そうでない場合は nerdamer の式を返します。
- */
-function evaluateNerdamer(expression: string): string {
-  try {
-    const evaluated = nerdamer(expression).evaluate().text('fractions');
-    if (isInteger(evaluated)) {
-      return evaluated;
-    }
-    return nerdamer(expression).text('fractions');
-  } catch (e) {
-    if (e instanceof Error) {
-      if (e.message.includes('Division by zero')) {
-        throw new Error(`division by zero not allowed`);
-      }
-      if (e.message.includes('0^0 is undefined')) {
-        throw new Error(`zero to the power of zero not allowed`);
-      }
-    }
-    console.error(e);
-    throw new Error(`internal error`);
-  }
-}
-
 function isInteger(value: string): boolean {
   return /^[+-]?[0-9]+$/.test(value);
 }
@@ -132,12 +106,39 @@ function evaluate(evaluable: Evaluable): string {
 }
 
 /**
+ * nerdamer を利用して式を評価します。
+ * nerdamer による評価後が整数であれば評価した値を、
+ * そうでない場合は nerdamer の式を返します。
+ */
+function evaluateNerdamer(expression: string): string {
+  try {
+    const evaluated = nerdamer(expression).evaluate().text('fractions');
+    if (isInteger(evaluated)) {
+      return evaluated;
+    }
+    return nerdamer(expression).text('fractions');
+  } catch (e) {
+    if (e instanceof Error) {
+      if (e.message.includes('Division by zero')) {
+        throw new Error(`division by zero not allowed`);
+      }
+      if (e.message.includes('0^0 is undefined')) {
+        throw new Error(`zero to the power of zero not allowed`);
+      }
+    }
+    console.error(e);
+    throw new Error(`internal error`);
+  }
+}
+
+/**
  * 独自記法の式を解析し、計算用オブジェクトに変換します。
  */
 function parse(expression: string): Evaluable {
   const normalized = expression.replace(/\s/g, '')
     .replace('√', 'R')
     .replace('∑', 'S')
+    .replace('Σ', 'S')
     .replace('×', '*')
     .replace('÷', '/');
   if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
@@ -151,8 +152,8 @@ function parse(expression: string): Evaluable {
 }
 
 function parseAddition(expression: string): Evaluable {
-  const addingevaluables: string[] = [];
-  const subtractingevaluables: string[] = [];
+  const addingEvaluables: string[] = [];
+  const subtractingEvaluables: string[] = [];
   let found = false;
   let nest = 0;
   let startIndex = 0;
@@ -183,10 +184,10 @@ function parseAddition(expression: string): Evaluable {
       }
       switch(operation) {
         case '+':
-          addingevaluables.push(left);
+          addingEvaluables.push(left);
           break;
         case '-':
-          subtractingevaluables.push(left);
+          subtractingEvaluables.push(left);
           break;
       }
       found = true;
@@ -204,20 +205,20 @@ function parseAddition(expression: string): Evaluable {
     }
     switch(operation) {
       case '+':
-        addingevaluables.push(right);
+        addingEvaluables.push(right);
         break;
       case '-':
-        subtractingevaluables.push(right);
+        subtractingEvaluables.push(right);
         break;
     }
     const operands: Evaluable[] = [];
-    for (const addingevaluable of addingevaluables) {
-      operands.push(parseAddition(addingevaluable));
+    for (const addingEvaluable of addingEvaluables) {
+      operands.push(parseAddition(addingEvaluable));
     }
-    for (const subtractingevaluable of subtractingevaluables) {
+    for (const subtractingEvaluable of subtractingEvaluables) {
       operands.push({
         type: 'Negate',
-        operand: parseAddition(subtractingevaluable),
+        operand: parseAddition(subtractingEvaluable),
       });
     }
     return {
@@ -229,8 +230,8 @@ function parseAddition(expression: string): Evaluable {
 }
 
 function parseMultiplication(expression: string): Evaluable {
-  const multiplyingevaluables: string[] = [];
-  const dividingevaluables: string[] = [];
+  const multiplyingEvaluables: string[] = [];
+  const dividingEvaluables: string[] = [];
   let found = false;
   let nest = 0;
   let startIndex = 0;
@@ -258,10 +259,10 @@ function parseMultiplication(expression: string): Evaluable {
       }
       switch(operation) {
         case '*':
-          multiplyingevaluables.push(left);
+          multiplyingEvaluables.push(left);
           break;
         case '/':
-          dividingevaluables.push(left);
+          dividingEvaluables.push(left);
           break;
       }
       found = true;
@@ -279,20 +280,20 @@ function parseMultiplication(expression: string): Evaluable {
     }
     switch(operation) {
       case '*':
-        multiplyingevaluables.push(right);
+        multiplyingEvaluables.push(right);
         break;
       case '/':
-        dividingevaluables.push(right);
+        dividingEvaluables.push(right);
         break;
     }
     const numerators: Evaluable[] = [];
     const denominators: Evaluable[] = [];
 
-    for (const multiplyingevaluable of multiplyingevaluables) {
-      numerators.push(parseAddition(multiplyingevaluable));
+    for (const multiplyingEvaluable of multiplyingEvaluables) {
+      numerators.push(parseAddition(multiplyingEvaluable));
     }
-    for (const dividingevaluable of dividingevaluables) {
-      denominators.push(parseAddition(dividingevaluable));
+    for (const dividingEvaluable of dividingEvaluables) {
+      denominators.push(parseAddition(dividingEvaluable));
     }
     if (denominators.length === 0) {
       return {
