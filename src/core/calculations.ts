@@ -152,9 +152,8 @@ function parse(expression: string): Evaluable {
 }
 
 function parseAddition(expression: string): Evaluable {
-  const addingEvaluables: string[] = [];
-  const subtractingEvaluables: string[] = [];
-  let found = false;
+  const addingOperands: string[] = [];
+  const subtractingOperands: string[] = [];
   let nest = 0;
   let startIndex = 0;
   let operation = '+';
@@ -184,13 +183,12 @@ function parseAddition(expression: string): Evaluable {
       }
       switch(operation) {
         case '+':
-          addingEvaluables.push(left);
+          addingOperands.push(left);
           break;
         case '-':
-          subtractingEvaluables.push(left);
+          subtractingOperands.push(left);
           break;
       }
-      found = true;
       operation = c;
       startIndex = i + 1;
     }
@@ -198,27 +196,27 @@ function parseAddition(expression: string): Evaluable {
   if (nest > 0) {
     throw new Error('unmatched bracket');
   }
-  if (found) {
+  if (addingOperands.length > 0 || subtractingOperands.length > 0) {
     const right = expression.substring(startIndex);
     if (right.length === 0) {
       throw new Error(`missing right operand of ${operation} operator`);
     }
     switch(operation) {
       case '+':
-        addingEvaluables.push(right);
+        addingOperands.push(right);
         break;
       case '-':
-        subtractingEvaluables.push(right);
+        subtractingOperands.push(right);
         break;
     }
     const operands: Evaluable[] = [];
-    for (const addingEvaluable of addingEvaluables) {
-      operands.push(parseAddition(addingEvaluable));
+    for (const addingOperand of addingOperands) {
+      operands.push(parseAddition(addingOperand));
     }
-    for (const subtractingEvaluable of subtractingEvaluables) {
+    for (const subtractingOperand of subtractingOperands) {
       operands.push({
         type: 'Negate',
-        operand: parseAddition(subtractingEvaluable),
+        operand: parseAddition(subtractingOperand),
       });
     }
     return {
@@ -230,9 +228,8 @@ function parseAddition(expression: string): Evaluable {
 }
 
 function parseMultiplication(expression: string): Evaluable {
-  const multiplyingEvaluables: string[] = [];
-  const dividingEvaluables: string[] = [];
-  let found = false;
+  const multiplyingOperands: string[] = [];
+  const dividingOperands: string[] = [];
   let nest = 0;
   let startIndex = 0;
   let operation = '*';
@@ -259,13 +256,12 @@ function parseMultiplication(expression: string): Evaluable {
       }
       switch(operation) {
         case '*':
-          multiplyingEvaluables.push(left);
+          multiplyingOperands.push(left);
           break;
         case '/':
-          dividingEvaluables.push(left);
+          dividingOperands.push(left);
           break;
       }
-      found = true;
       operation = c;
       startIndex = i + 1;
     }
@@ -273,27 +269,27 @@ function parseMultiplication(expression: string): Evaluable {
   if (nest > 0) {
     throw new Error('unmatched bracket');
   }
-  if (found) {
+  if (multiplyingOperands.length > 0 || dividingOperands.length > 0) {
     const right = expression.substring(startIndex);
     if (right.length === 0) {
       throw new Error(`missing right operand of ${operation} operator`);
     }
     switch(operation) {
       case '*':
-        multiplyingEvaluables.push(right);
+        multiplyingOperands.push(right);
         break;
       case '/':
-        dividingEvaluables.push(right);
+        dividingOperands.push(right);
         break;
     }
     const numerators: Evaluable[] = [];
     const denominators: Evaluable[] = [];
 
-    for (const multiplyingEvaluable of multiplyingEvaluables) {
-      numerators.push(parseAddition(multiplyingEvaluable));
+    for (const multiplyingOperand of multiplyingOperands) {
+      numerators.push(parseAddition(multiplyingOperand));
     }
-    for (const dividingEvaluable of dividingEvaluables) {
-      denominators.push(parseAddition(dividingEvaluable));
+    for (const dividingOperand of dividingOperands) {
+      denominators.push(parseAddition(dividingOperand));
     }
     if (denominators.length === 0) {
       return {
