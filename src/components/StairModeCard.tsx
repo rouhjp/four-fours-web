@@ -1,7 +1,7 @@
 import { JSX, useState, useRef, useEffect } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
-import { useExpression } from "../hooks/useExpression";
+import { useFourFours } from "../hooks/useFourFours";
 import { RiArrowLeftDoubleFill, RiArrowLeftSLine, RiArrowRightDoubleFill, RiArrowRightSLine } from "react-icons/ri";
 import { getAnswer } from "../core/answers";
 
@@ -11,10 +11,10 @@ const QUESTION_MAX = 3000;
 export default function StairModeCard(): JSX.Element {
   const [question, setQuestion] = useState<number>(1);
   const [answers, setAnswers] = useState<string[]>(() => Array.from({ length: 100 }, () => "")); 
-  const [expression, result, error, warning, handleInputChange] = useExpression(question, (expression) => {
+  const [input, result, error, warning, handleInputChange] = useFourFours(question, (input) => {
     setAnswers((answers) => {
       const newAnswers = [...answers];
-      newAnswers[question] = expression;
+      newAnswers[question] = input;
       return newAnswers;
     })
   });
@@ -116,7 +116,7 @@ export default function StairModeCard(): JSX.Element {
         </button>
       </div>
       <h1 className="text-2xl font-bold text-center mb-2">{question}</h1>
-      <p className={`text-3xl font-bold text-center ${solved ? "text-green-600" : (!expression || error ? "text-gray-300" : "text-yellow-600")} mb-6 h-12`}>
+      <p className={`text-3xl font-bold text-center ${solved ? "text-green-600" : (!input || error ? "text-gray-300" : "text-yellow-600")} mb-6 h-12`}>
         {result !== null ? result : "?"}
       </p>
 
@@ -129,7 +129,7 @@ export default function StairModeCard(): JSX.Element {
         </div>
         <input
           type="text"
-          value={expression}
+          value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder="Enter expression"
           className="w-full p-3 mb-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -149,7 +149,7 @@ export default function StairModeCard(): JSX.Element {
             {warning}
           </p>
         )}
-        {expression && !error && !warning && (
+        {input && !error && !warning && (
           <p className="text-green-600 text-sm flex items-center justify-center h-8">
             <MdCheckCircle className="w-5 h-5 mr-2 text-green-600" />
             {"Solved!"}

@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { evaluateExpression } from "../core/calculations";
+import { evaluate } from "../core/calculations";
 import { truncate } from "../core/utils";
 
-export const useExpression = (question?: number, onSolved?: (expression: string) => void) => {
-  const [expression, setExpression] = useState('');
+export const useFourFours = (question?: number, onSolved?: (input: string) => void) => {
+  const [input, setInput] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>('Input something above');
   
   const handleInputChange = (value: string) => {
     if(value.length === 0) {
-      setExpression('');
+      setInput('');
       setResult(null);
       setError(null);
       setWarning('Input something above');
@@ -19,11 +19,11 @@ export const useExpression = (question?: number, onSolved?: (expression: string)
     const replacedValue = value.replace(/[^0-9+\-*/()!^.SsRr√Σ÷× ]/g, '').toUpperCase();
     let result = "";
     
-    setExpression(replacedValue);
+    setInput(replacedValue);
     
     if (replacedValue !== '') {
       try {
-        result = evaluateExpression(replacedValue);
+        result = evaluate(replacedValue);
         if (result.includes('.')) {
           setResult(truncate(result, 16));
           setError('Result is not an integer');
@@ -69,7 +69,7 @@ export const useExpression = (question?: number, onSolved?: (expression: string)
   }
 
   return [
-    expression,
+    input,
     result,
     error,
     warning,

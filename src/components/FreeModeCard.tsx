@@ -2,22 +2,22 @@ import { JSX, useState } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import RuleModal from "./RuleModal";
-import { useExpression } from "../hooks/useExpression";
+import { useFourFours } from "../hooks/useFourFours";
 
 export default function FreeModeCard(): JSX.Element {
-  const [expression, result, error, warning, handleInputChange] = useExpression();
+  const [input, result, error, warning, handleInputChange] = useFourFours();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
       <div className="absolute top-2 left-4 text-gray-300">Free Input Mode</div>
-      <p className={`text-3xl font-bold text-center ${!expression || error ? "text-gray-300" : "text-gray-800"} mb-6 h-12`}>
+      <p className={`text-3xl font-bold text-center ${!input || error ? "text-gray-300" : "text-gray-800"} mb-6 h-12`}>
         {result !== null ? result : '?'}
       </p>
 
       <input
         type="text"
-        value={expression}
+        value={input}
         onChange={(e) => handleInputChange(e.target.value)}
         placeholder="Enter expression"
         className="w-full p-3 mb-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -36,7 +36,7 @@ export default function FreeModeCard(): JSX.Element {
             {warning}
           </p>
         }
-        {expression && !error && !warning &&
+        {input && !error && !warning &&
           <p className="text-green-600 text-sm flex items-center justify-center h-8">
             <MdCheckCircle className="w-5 h-5 mr-2 text-green-600" />
             {"Four fours"}

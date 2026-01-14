@@ -1,26 +1,26 @@
 import nerdamer from "nerdamer";
 
-type Evaluable = Constant | BinaryOperation | UnaryOperation;
+type Expression = Constant | BinaryOperation | UnaryOperation;
 type BinaryOperation = {
   type: "Add" | "Subtract" | "Multiply" | "Divide" | "Power";
-  operands: Evaluable[];
+  operands: Expression[];
 };
 type UnaryOperation = {
   type: "Sum" | "Root" | "Factorial" | "Negate";
-  operand: Evaluable;
+  operand: Expression;
 };
 type Constant = {
   value: string;
 }
 
-function isConstant(evaluable: Evaluable): evaluable is Constant {
-  return "value" in evaluable;
+function isConstant(expression: Expression): expression is Constant {
+  return "value" in expression;
 }
-function isUnaryOperation(evaluable: Evaluable): evaluable is UnaryOperation {
-  return "operand" in evaluable;
+function isUnaryOperation(expression: Expression): expression is UnaryOperation {
+  return "operand" in expression;
 }
-function isBinaryOperation(evaluable: Evaluable): evaluable is BinaryOperation {
-  return "operands" in evaluable;
+function isBinaryOperation(expression: Expression): expression is BinaryOperation {
+  return "operands" in expression;
 }
 
 function isInteger(value: string): boolean {
@@ -48,9 +48,9 @@ function requireMaxDigit(value: string, maxDigits: number, message: string) {
 /**
  * 独自記法の式を評価し、計算結果を返します。
  */
-export function evaluateExpression(expression: string) {
-  const parsed = parse(expression);
-  const evaluated = evaluate(parsed);
+export function evaluate(input: string) {
+  const parsed = parse(input);
+  const evaluated = doEvaluate(parsed);
   if (!isInteger(evaluated)) {
     return nerdamer(evaluated).evaluate().text('decimals');
   }
@@ -60,10 +60,10 @@ export function evaluateExpression(expression: string) {
 /**
  * 計算用オブジェクトを評価し、計算結果を返します。
  */
-function evaluate(evaluable: Evaluable): string {
-  if(isUnaryOperation(evaluable)) {
-    const operand = evaluate(evaluable.operand);
-    switch(evaluable.type) {
+function doEvaluate(input: Expression): string {
+  if(isUnaryOperation(input)) {
+    const operand = doEvaluate(input.operand);
+    switch(input.type) {
       case "Sum":
         requireInteger(operand, "the operand of sum operator must be an integer");
         requirePositiveOrZero(operand, `the operand of sum operator must be a positive integer: ${operand}`);
@@ -81,9 +81,9 @@ function evaluate(evaluable: Evaluable): string {
         return evaluateNerdamer(`(-1*(${operand}))`);
     }
   }
-  if(isBinaryOperation(evaluable)) {
-    const operands = evaluable.operands.map(operand => evaluate(operand));
-    switch(evaluable.type) {
+  if(isBinaryOperation(input)) {
+    const operands = input.operands.map(operand => doEvaluate(operand));
+    switch(input.type) {
       case "Add":
         return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('+')}`);
       case "Subtract":
@@ -97,11 +97,11 @@ function evaluate(evaluable: Evaluable): string {
         return evaluateNerdamer(`${operands[0]}^${operands[1]}`);
     }
   }
-  if(isConstant(evaluable)) {
-    requireInteger(evaluable.value, `invalid constant: ${evaluable.value}`);
-    return evaluable.value;
+  if(isConstant(input)) {
+    requireInteger(input.value, `invalid constant: ${input.value}`);
+    return input.value;
   }
-  console.error(`unexpected evaluation type: ${evaluable}`);
+  console.error(`unexpected evaluation type: ${input}`);
   throw new Error('internal error');
 }
 
@@ -110,13 +110,13 @@ function evaluate(evaluable: Evaluable): string {
  * nerdamer による評価後が整数であれば評価した値を、
  * そうでない場合は nerdamer の式を返します。
  */
-function evaluateNerdamer(expression: string): string {
+function evaluateNerdamer(input: string): string {
   try {
-    const evaluated = nerdamer(expression).evaluate().text('fractions');
+    const evaluated = nerdamer(input).evaluate().text('fractions');
     if (isInteger(evaluated)) {
       return evaluated;
     }
-    return nerdamer(expression).text('fractions');
+    return nerdamer(input).text('fractions');
   } catch (e) {
     if (e instanceof Error) {
       if (e.message.includes('Division by zero')) {
@@ -134,8 +134,8 @@ function evaluateNerdamer(expression: string): string {
 /**
  * 独自記法の式を解析し、計算用オブジェクトに変換します。
  */
-function parse(expression: string): Evaluable {
-  const normalized = expression.replace(/\s/g, '')
+function parse(input: string): Expression {
+  const normalized = input.replace(/\s/g, '')
     .replace('√', 'R')
     .replace('∑', 'S')
     .replace('Σ', 'S')
@@ -151,14 +151,14 @@ function parse(expression: string): Evaluable {
   return parseAddition(normalized);
 }
 
-function parseAddition(expression: string): Evaluable {
+function parseAddition(input: string): Expression {
   const addingOperands: string[] = [];
   const subtractingOperands: string[] = [];
   let nest = 0;
   let startIndex = 0;
   let operation = '+';
-  for (let i = startIndex; i < expression.length; i++) {
-    const c = expression[i];
+  for (let i = startIndex; i < input.length; i++) {
+    const c = input[i];
     if (c === '(') {
       nest++;
       continue;
@@ -174,7 +174,7 @@ function parseAddition(expression: string): Evaluable {
       continue;
     }
     if (c === '+' || c === '-') {
-      const left = expression.substring(startIndex, i);
+      const left = input.substring(startIndex, i);
       if (left.length === 0) {
         if (i === 0) {
           continue;
@@ -197,7 +197,7 @@ function parseAddition(expression: string): Evaluable {
     throw new Error('unmatched bracket');
   }
   if (addingOperands.length > 0 || subtractingOperands.length > 0) {
-    const right = expression.substring(startIndex);
+    const right = input.substring(startIndex);
     if (right.length === 0) {
       throw new Error(`missing right operand of ${operation} operator`);
     }
@@ -209,7 +209,7 @@ function parseAddition(expression: string): Evaluable {
         subtractingOperands.push(right);
         break;
     }
-    const operands: Evaluable[] = [];
+    const operands: Expression[] = [];
     for (const addingOperand of addingOperands) {
       operands.push(parseAddition(addingOperand));
     }
@@ -224,17 +224,17 @@ function parseAddition(expression: string): Evaluable {
       operands: operands,
     };
   }
-  return parseMultiplication(expression);
+  return parseMultiplication(input);
 }
 
-function parseMultiplication(expression: string): Evaluable {
+function parseMultiplication(input: string): Expression {
   const multiplyingOperands: string[] = [];
   const dividingOperands: string[] = [];
   let nest = 0;
   let startIndex = 0;
   let operation = '*';
-  for (let i = startIndex; i < expression.length; i++) {
-    const c = expression[i];
+  for (let i = startIndex; i < input.length; i++) {
+    const c = input[i];
     if (c === '(') {
       nest++;
       continue;
@@ -250,7 +250,7 @@ function parseMultiplication(expression: string): Evaluable {
       continue;
     }
     if (c === '*' || c === '/') {
-      const left = expression.substring(startIndex, i);
+      const left = input.substring(startIndex, i);
       if (left.length === 0) {
         throw new Error(`missing left operand of ${c} operator`);
       }
@@ -270,7 +270,7 @@ function parseMultiplication(expression: string): Evaluable {
     throw new Error('unmatched bracket');
   }
   if (multiplyingOperands.length > 0 || dividingOperands.length > 0) {
-    const right = expression.substring(startIndex);
+    const right = input.substring(startIndex);
     if (right.length === 0) {
       throw new Error(`missing right operand of ${operation} operator`);
     }
@@ -282,8 +282,8 @@ function parseMultiplication(expression: string): Evaluable {
         dividingOperands.push(right);
         break;
     }
-    const numerators: Evaluable[] = [];
-    const denominators: Evaluable[] = [];
+    const numerators: Expression[] = [];
+    const denominators: Expression[] = [];
 
     for (const multiplyingOperand of multiplyingOperands) {
       numerators.push(parseAddition(multiplyingOperand));
@@ -311,13 +311,13 @@ function parseMultiplication(expression: string): Evaluable {
       ]
     };
   }
-  return parsePower(expression);
+  return parsePower(input);
 }
 
-function parsePower(expression: string): Evaluable {
+function parsePower(input: string): Expression {
   let nest = 0;
-  for (let i = 0; i < expression.length; i++) {
-    const c = expression[i];
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
     if (c === '(') {
       nest++;
       continue;
@@ -333,8 +333,8 @@ function parsePower(expression: string): Evaluable {
       continue;
     }
     if (c === '^') {
-      const left = expression.substring(0, i);
-      const right = expression.substring(i + 1);
+      const left = input.substring(0, i);
+      const right = input.substring(i + 1);
       if (left.length === 0 || right.length === 0) {
         throw new Error('missing left operand of ^ operator');
       }
@@ -350,14 +350,14 @@ function parsePower(expression: string): Evaluable {
   if (nest > 0) {
     throw new Error('unmatched bracket');
   }
-  return parseUnaryOperation(expression);
+  return parseUnaryOperation(input);
 }
 
-function parseUnaryOperation(expression: string): Evaluable {
-  const first = expression[0];
-  const right = expression.substring(1);
-  const last = expression[expression.length - 1];
-  const left = expression.substring(0, expression.length - 1);
+function parseUnaryOperation(input: string): Expression {
+  const first = input[0];
+  const right = input.substring(1);
+  const last = input[input.length - 1];
+  const left = input.substring(0, input.length - 1);
   if (first === '-') {
     if (right.length === 0) {
       throw new Error('missing right operand of - operator');
@@ -386,10 +386,10 @@ function parseUnaryOperation(expression: string): Evaluable {
     };
   }
   if (first === '(' && last === ')') {
-    if (expression.length === 2) {
+    if (input.length === 2) {
       throw new Error('empty bracket');
     }
-    return parseAddition(expression.substring(1, expression.length - 1));
+    return parseAddition(input.substring(1, input.length - 1));
   }
   if (last === '!') {
     if (left.length === 0) {
@@ -400,15 +400,15 @@ function parseUnaryOperation(expression: string): Evaluable {
       operand: parseAddition(left),
     };
   }
-  if (isInteger(expression)) {
+  if (isInteger(input)) {
     return {
-      value: expression.replace('+', '')
+      value: input.replace('+', '')
     };
   }
-  if (/^[0-9]*\.[0-9]+$/.test(expression)) {
-    const integer = expression.split('.')[0];
-    const decimal = expression.split('.')[1];
-    const division: Evaluable = {
+  if (/^[0-9]*\.[0-9]+$/.test(input)) {
+    const integer = input.split('.')[0];
+    const decimal = input.split('.')[1];
+    const division: Expression = {
       type: 'Divide',
       operands: [
         {
@@ -433,9 +433,9 @@ function parseUnaryOperation(expression: string): Evaluable {
       }
     }
   }
-  if (/^[0-9]*\.\([0-9]+\)$/.test(expression)) {
-    const integer = expression.split('.')[0];
-    const repeated = expression.split('.')[1].replace('(', '').replace(')', '');
+  if (/^[0-9]*\.\([0-9]+\)$/.test(input)) {
+    const integer = input.split('.')[0];
+    const repeated = input.split('.')[1].replace('(', '').replace(')', '');
     const division = parseRepeatingDecimal(repeated);
     if (integer.length === 0) {
       return division;
@@ -452,12 +452,12 @@ function parseUnaryOperation(expression: string): Evaluable {
     }
   }
 
-  throw new Error(`invalid expression: ${expression}`);
+  throw new Error(`invalid expression: ${input}`);
 }
 
-function parseRepeatingDecimal(repeatingExpression: string): Evaluable {
-  const repeating = BigInt(repeatingExpression);
-  const factor = BigInt(10) ** BigInt(repeatingExpression.length);
+function parseRepeatingDecimal(input: string): Expression {
+  const repeating = BigInt(input);
+  const factor = BigInt(10) ** BigInt(input.length);
 
   const denominator = factor - BigInt(1);
   const numerator = repeating;

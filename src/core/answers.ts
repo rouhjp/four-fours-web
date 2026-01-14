@@ -1,5 +1,5 @@
 import answersData from './answers.json';
-import { evaluateExpression } from './calculations';
+import { evaluate } from './calculations';
 
 const ANSWERS: string[] = answersData.answers;
 
@@ -10,11 +10,11 @@ export function getAnswer(number: number): string {
   return ANSWERS[number];
 }
 
-export function removeUnnecessaryBrackets(expression: string) {
+export function removeUnnecessaryBrackets(input: string) {
   const startIndexes = [];
   const brackets = [];
-  for(let i = 0; i<expression.length; i++) {
-    const c = expression[i];
+  for(let i = 0; i<input.length; i++) {
+    const c = input[i];
     if (c === '(') {
       startIndexes.push(i);
     }
@@ -25,11 +25,11 @@ export function removeUnnecessaryBrackets(expression: string) {
     }
   }
 
-  const oldResult = evaluateExpression(expression);
+  const oldResult = evaluate(input);
   for (const bracket of brackets) {
     try {
-      const bracketRemoved = expression.slice(0, bracket.from) + expression.slice(bracket.from + 1, bracket.to) + expression.slice(bracket.to + 1);
-      const newResult = evaluateExpression(bracketRemoved);
+      const bracketRemoved = input.slice(0, bracket.from) + input.slice(bracket.from + 1, bracket.to) + input.slice(bracket.to + 1);
+      const newResult = evaluate(bracketRemoved);
       if (newResult === oldResult) {
         return removeUnnecessaryBrackets(bracketRemoved);
       }
@@ -37,5 +37,5 @@ export function removeUnnecessaryBrackets(expression: string) {
       // pass
     }
   }
-  return expression;
+  return input;
 }
