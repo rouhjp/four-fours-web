@@ -1,3 +1,4 @@
+import { describe, test, expect } from "vitest";
 import { getAnswer } from "../core/answers";
 import { evaluate } from "../core/calculations";
 
