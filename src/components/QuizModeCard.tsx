@@ -5,11 +5,13 @@ import { MdCheckCircle } from "react-icons/md";
 import { useFourFours } from "../hooks/useFourFours";
 import { GrUpdate } from "react-icons/gr";
 import { getAnswer } from "../core/answers";
+import { useKaTeX } from "../hooks/useKaTeX";
 
 export default function QuizModeCard(): JSX.Element {
   const [question, setQuestion] = useState<number>(random(1, 3000));
   const [input, result, error, warning, handleInputChange] = useFourFours(question);
   const solved = !error && !warning && result === question.toString();
+  const [katexHtml, katexRef] = useKaTeX(input);
 
   const newQuestion = () => {
     setQuestion(random(1, 3000));
@@ -32,6 +34,15 @@ export default function QuizModeCard(): JSX.Element {
         </button>
       </div>
       <h1 className="text-2xl font-bold text-center mb-2">{`${question} = ?`}</h1>
+      <div className="text-center mb-4 text-xl text-gray-700 h-16 flex items-center justify-center bg-gray-100 overflow-hidden">
+        {katexHtml && (
+          <div
+            ref={katexRef}
+            className="katex-container"
+            dangerouslySetInnerHTML={{ __html: katexHtml }}
+          />
+        )}
+      </div>
       <p className={`text-3xl font-bold text-center ${solved? "text-green-600" :  (!input || error ? "text-gray-300" : "text-yellow-600")} mb-6 h-12`}>
         {result !== null ? result : '?'}
       </p>

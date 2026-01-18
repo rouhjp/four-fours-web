@@ -293,3 +293,81 @@ function doParse(input: string): Expression {
   }
   throw new Error(`invalid expression: ${input}`);
 }
+
+
+/**
+ * 独自記法の式をKaTeX形式の文字列に変換します。
+ */
+export function convertToKaTeX(input: string): string {
+  try {
+    return toKaTeX(parse(input));
+  } catch {
+    return '';
+  }
+}
+
+type ParenthesesPolicy = 'wrapBinaryOps' | 'wrapAddSub' | 'wrapBinaryAndNegate';
+
+function needsParentheses(expression: Expression, policy: ParenthesesPolicy = 'wrapBinaryOps'): boolean {
+  if (isBinaryOperation(expression)) {
+    if (policy === 'wrapAddSub') {
+      return expression.type === "Add" || expression.type === "Subtract";
+    }
+    return true;
+  }
+  if (policy === 'wrapBinaryAndNegate' && isUnaryOperation(expression)) {
+    return expression.type === "Negate";
+  }
+  return false;
+}
+
+function wrapIfNeeded(expression: Expression, katex: string, policy: ParenthesesPolicy = 'wrapBinaryOps'): string {
+  return needsParentheses(expression, policy) ? `(${katex})` : katex;
+}
+
+function toKaTeX(expr: Expression): string {
+  if (isConstant(expr)) {
+    return expr.value;
+  }
+  if (isDecimalConstant(expr)) {
+    const intPart = expr.integerPart || '0';
+    return expr.repeating
+      ? `${intPart}.\\overline{${expr.decimalPart}}`
+      : `${intPart}.${expr.decimalPart}`;
+  }
+  if (isUnaryOperation(expr)) {
+    const operand = toKaTeX(expr.operand);
+    switch (expr.type) {
+      case "Sum":
+        return `\\sum ${wrapIfNeeded(expr.operand, operand)}`;
+      case "Root":
+        return `\\sqrt{${operand}}`;
+      case "Factorial":
+        return `${wrapIfNeeded(expr.operand, operand)}!`;
+      case "Negate":
+        return `-(${operand})`;
+    }
+  }
+  if (isBinaryOperation(expr)) {
+    const [left, right] = expr.operands.map(toKaTeX);
+    switch (expr.type) {
+      case "Add":
+        return expr.operands.map((op, i) => {
+          const katex = toKaTeX(op);
+          if (isUnaryOperation(op) && op.type === "Negate") return katex;
+          return i === 0 ? katex : `+${katex}`;
+        }).join('');
+      case "Subtract":
+        return `${left}-${right}`;
+      case "Multiply":
+        return expr.operands.map(op =>
+          wrapIfNeeded(op, toKaTeX(op), 'wrapAddSub')
+        ).join(' \\times ');
+      case "Divide":
+        return `\\frac{${left}}{${right}}`;
+      case "Power":
+        return `${wrapIfNeeded(expr.operands[0], left, 'wrapBinaryAndNegate')}^{${right}}`;
+    }
+  }
+  return '';
+}

@@ -3,14 +3,25 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import RuleModal from "./RuleModal";
 import { useFourFours } from "../hooks/useFourFours";
+import { useKaTeX } from "../hooks/useKaTeX";
 
 export default function FreeModeCard(): JSX.Element {
   const [input, result, error, warning, handleInputChange] = useFourFours();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [katexHtml, katexRef] = useKaTeX(input);
 
   return (
     <>
-      <div className="absolute top-2 left-4 text-gray-300">Free Input Mode</div>
+      <div className="text-center mb-4 text-xl text-gray-700 h-16 flex items-center justify-center bg-gray-100 overflow-hidden">
+        {katexHtml && (
+          <div
+            ref={katexRef}
+            className="katex-container"
+            dangerouslySetInnerHTML={{ __html: katexHtml }}
+          />
+        )}
+      </div>
+
       <p className={`text-3xl font-bold text-center ${!input || error ? "text-gray-300" : "text-gray-800"} mb-6 h-12`}>
         {result !== null ? result : '?'}
       </p>

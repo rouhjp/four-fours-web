@@ -4,6 +4,7 @@ import { MdCheckCircle } from "react-icons/md";
 import { useFourFours } from "../hooks/useFourFours";
 import { RiArrowLeftDoubleFill, RiArrowLeftSLine, RiArrowRightDoubleFill, RiArrowRightSLine } from "react-icons/ri";
 import { getAnswer } from "../core/answers";
+import { useKaTeX } from "../hooks/useKaTeX";
 
 const QUESTION_MIN = 1;
 const QUESTION_MAX = 3000;
@@ -19,6 +20,7 @@ export default function StairModeCard(): JSX.Element {
     })
   });
   const solved = !error && !warning && result === question.toString();
+  const [katexHtml, katexRef] = useKaTeX(input);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef<boolean>(false);
@@ -115,6 +117,15 @@ export default function StairModeCard(): JSX.Element {
         </button>
       </div>
       <h1 className="text-2xl font-bold text-center mb-2">{question}</h1>
+      <div className="text-center mb-4 text-xl text-gray-700 h-16 flex items-center justify-center bg-gray-100 overflow-hidden">
+        {katexHtml && (
+          <div
+            ref={katexRef}
+            className="katex-container"
+            dangerouslySetInnerHTML={{ __html: katexHtml }}
+          />
+        )}
+      </div>
       <p className={`text-3xl font-bold text-center ${solved ? "text-green-600" : (!input || error ? "text-gray-300" : "text-yellow-600")} mb-6 h-12`}>
         {result !== null ? result : "?"}
       </p>
