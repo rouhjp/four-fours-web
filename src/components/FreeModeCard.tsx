@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, useState, useCallback } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import RuleModal from "./RuleModal";
@@ -10,7 +10,8 @@ export default function FreeModeCard(): JSX.Element {
   const [input, result, error, warning, handleInputChange] = useFourFours();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [katexHtml, katexRef] = useKaTeX(input);
-  const inputRef = useEnterToFocus<HTMLInputElement>();
+  const handleClear = useCallback(() => handleInputChange(''), [handleInputChange]);
+  const inputRef = useEnterToFocus<HTMLInputElement>(handleClear);
 
   return (
     <>

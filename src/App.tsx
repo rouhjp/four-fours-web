@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import FreeModeCard from './components/FreeModeCard';
 import QuizModeCard from './components/QuizModeCard';
@@ -10,6 +10,36 @@ function App() {
   const [mode, setMode] = useState<typeof MODES[number]>("Free");
   const modeIndex = MODES.indexOf(mode);
 
+  const goToPrevMode = useCallback(() => {
+    if (modeIndex > 0) {
+      setMode(MODES[modeIndex - 1]);
+    }
+  }, [modeIndex]);
+
+  const goToNextMode = useCallback(() => {
+    if (modeIndex < MODES.length - 1) {
+      setMode(MODES[modeIndex + 1]);
+    }
+  }, [modeIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement instanceof HTMLInputElement) {
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrevMode();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextMode();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToPrevMode, goToNextMode]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold text-gray-800 mb-8">Four Fours</h1>
@@ -18,7 +48,7 @@ function App() {
           {modeIndex>0 && (
             <FaChevronLeft
               className=" text-gray-500 w-8 h-6 cursor-pointer"
-              onClick={() => setMode(MODES[modeIndex - 1])}
+              onClick={goToPrevMode}
             />
           )}
         </div>
@@ -37,7 +67,7 @@ function App() {
           {modeIndex<MODES.length - 1 && (
             <FaChevronRight
               className="text-gray-500 w-8 h-6 cursor-pointer"
-              onClick={() => setMode(MODES[modeIndex + 1])}
+              onClick={goToNextMode}
             />
           )}
         </div>

@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, useState, useEffect, useCallback } from "react";
 import { random } from "../core/utils";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
@@ -13,16 +13,35 @@ export default function QuizModeCard(): JSX.Element {
   const [input, result, error, warning, handleInputChange] = useFourFours(question);
   const solved = !error && !warning && result === question.toString();
   const [katexHtml, katexRef] = useKaTeX(input);
-  const inputRef = useEnterToFocus<HTMLInputElement>();
+  const handleClear = useCallback(() => handleInputChange(''), [handleInputChange]);
+  const inputRef = useEnterToFocus<HTMLInputElement>(handleClear);
 
-  const newQuestion = () => {
+  const newQuestion = useCallback(() => {
     setQuestion(random(1, 3000));
     handleInputChange('');
-  };
+  }, [handleInputChange]);
 
-  const handleAnswerButtonClick = () => {
+  const handleAnswerButtonClick = useCallback(() => {
     handleInputChange(getAnswer(question));
-  };
+  }, [question, handleInputChange]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement instanceof HTMLInputElement) {
+        return;
+      }
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        newQuestion();
+      } else if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        handleAnswerButtonClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [newQuestion, handleAnswerButtonClick]);
 
   return (
     <>

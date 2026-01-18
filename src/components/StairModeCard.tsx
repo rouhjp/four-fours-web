@@ -1,4 +1,4 @@
-import { JSX, useState, useRef, useEffect } from "react";
+import { JSX, useState, useRef, useEffect, useCallback } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdCheckCircle } from "react-icons/md";
 import { useFourFours } from "../hooks/useFourFours";
@@ -22,7 +22,8 @@ export default function StairModeCard(): JSX.Element {
   });
   const solved = !error && !warning && result === question.toString();
   const [katexHtml, katexRef] = useKaTeX(input);
-  const inputRef = useEnterToFocus<HTMLInputElement>();
+  const handleClear = useCallback(() => handleInputChange(''), [handleInputChange]);
+  const inputRef = useEnterToFocus<HTMLInputElement>(handleClear);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef<boolean>(false);
@@ -32,6 +33,27 @@ export default function StairModeCard(): JSX.Element {
     handleInputChange(savedAnswer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement instanceof HTMLInputElement) {
+        return;
+      }
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        handleInputChange(getAnswer(question));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setQuestion(q => Math.min(q + 1, QUESTION_MAX));
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setQuestion(q => Math.max(q - 1, QUESTION_MIN));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [question, handleInputChange]);
 
   const handleMouseDown = (update: () => void) => {
     isLongPress.current = false;
