@@ -1,6 +1,6 @@
 import nerdamer from "nerdamer";
 
-type Expression = Constant | BinaryOperation | UnaryOperation;
+type Expression = Constant | BinaryOperation | UnaryOperation | DecimalConstant;
 type BinaryOperation = {
   type: "Add" | "Subtract" | "Multiply" | "Divide" | "Power";
   operands: Expression[];
@@ -9,12 +9,20 @@ type UnaryOperation = {
   type: "Sum" | "Root" | "Factorial" | "Negate";
   operand: Expression;
 };
+type DecimalConstant = {
+  repeating: boolean;
+  integerPart: string;
+  decimalPart: string;
+}
 type Constant = {
   value: string;
 }
 
 function isConstant(expression: Expression): expression is Constant {
   return "value" in expression;
+}
+function isDecimalConstant(expression: Expression): expression is DecimalConstant {
+  return "integerPart" in expression;
 }
 function isUnaryOperation(expression: Expression): expression is UnaryOperation {
   return "operand" in expression;
@@ -25,6 +33,9 @@ function isBinaryOperation(expression: Expression): expression is BinaryOperatio
 
 function isInteger(value: string): boolean {
   return /^[+-]?[0-9]+$/.test(value);
+}
+function isDecimal(value: string): boolean {
+  return /^[0-9]*\.[0-9]+$/.test(value) || /^[0-9]*\.\([0-9]+\)$/.test(value);
 }
 
 function requireInteger(value: string, message: string) {
@@ -60,10 +71,10 @@ export function evaluate(input: string) {
 /**
  * 計算用オブジェクトを評価し、計算結果を返します。
  */
-function doEvaluate(input: Expression): string {
-  if(isUnaryOperation(input)) {
-    const operand = doEvaluate(input.operand);
-    switch(input.type) {
+function doEvaluate(expression: Expression): string {
+  if(isUnaryOperation(expression)) {
+    const operand = doEvaluate(expression.operand);
+    switch(expression.type) {
       case "Sum":
         requireInteger(operand, "the operand of sum operator must be an integer");
         requirePositiveOrZero(operand, `the operand of sum operator must be a positive integer: ${operand}`);
@@ -81,9 +92,9 @@ function doEvaluate(input: Expression): string {
         return evaluateNerdamer(`(-1*(${operand}))`);
     }
   }
-  if(isBinaryOperation(input)) {
-    const operands = input.operands.map(operand => doEvaluate(operand));
-    switch(input.type) {
+  if(isBinaryOperation(expression)) {
+    const operands = expression.operands.map(operand => doEvaluate(operand));
+    switch(expression.type) {
       case "Add":
         return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('+')}`);
       case "Subtract":
@@ -97,11 +108,15 @@ function doEvaluate(input: Expression): string {
         return evaluateNerdamer(`${operands[0]}^${operands[1]}`);
     }
   }
-  if(isConstant(input)) {
-    requireInteger(input.value, `invalid constant: ${input.value}`);
-    return input.value;
+  if(isConstant(expression)) {
+    requireInteger(expression.value, `invalid constant: ${expression.value}`);
+    return expression.value;
   }
-  console.error(`unexpected evaluation type: ${input}`);
+  if(isDecimalConstant(expression)) {
+    const converted = convertDecimalToDivision(expression);
+    return doEvaluate(converted);
+  }
+  console.error(`unexpected evaluation type: ${expression}`);
   throw new Error('internal error');
 }
 
@@ -131,328 +146,25 @@ function evaluateNerdamer(input: string): string {
   }
 }
 
-/**
- * 独自記法の式を解析し、計算用オブジェクトに変換します。
- */
-function parse(input: string): Expression {
-  const normalized = input.replace(/\s/g, '')
-    .replace('√', 'R')
-    .replace('∑', 'S')
-    .replace('Σ', 'S')
-    .replace('×', '*')
-    .replace('÷', '/');
-  if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
-    const invalidCharacter = normalized.match(/[^0-9-+/*^SR4!.()]/)?.[0];
-    throw new Error(`invalid character in expression: ${invalidCharacter}`);
-  }
-  if (normalized.length === 0) {
-    throw new Error('empty expression');
-  }
-  return parseAddition(normalized);
-}
-
-function parseAddition(input: string): Expression {
-  const addingOperands: string[] = [];
-  const subtractingOperands: string[] = [];
-  let nest = 0;
-  let startIndex = 0;
-  let operation = '+';
-  for (let i = startIndex; i < input.length; i++) {
-    const c = input[i];
-    if (c === '(') {
-      nest++;
-      continue;
-    }
-    if (c === ')') {
-      nest--;
-      if (nest < 0) {
-        throw new Error('unmatched bracket');
-      }
-      continue;
-    }
-    if (nest > 0) {
-      continue;
-    }
-    if (c === '+' || c === '-') {
-      const left = input.substring(startIndex, i);
-      if (left.length === 0) {
-        if (i === 0) {
-          continue;
-        }
-        throw new Error(`missing left operand of ${c} operator`);
-      }
-      switch(operation) {
-        case '+':
-          addingOperands.push(left);
-          break;
-        case '-':
-          subtractingOperands.push(left);
-          break;
-      }
-      operation = c;
-      startIndex = i + 1;
-    }
-  }
-  if (nest > 0) {
-    throw new Error('unmatched bracket');
-  }
-  if (addingOperands.length > 0 || subtractingOperands.length > 0) {
-    const right = input.substring(startIndex);
-    if (right.length === 0) {
-      throw new Error(`missing right operand of ${operation} operator`);
-    }
-    switch(operation) {
-      case '+':
-        addingOperands.push(right);
-        break;
-      case '-':
-        subtractingOperands.push(right);
-        break;
-    }
-    const operands: Expression[] = [];
-    for (const addingOperand of addingOperands) {
-      operands.push(parseAddition(addingOperand));
-    }
-    for (const subtractingOperand of subtractingOperands) {
-      operands.push({
-        type: 'Negate',
-        operand: parseAddition(subtractingOperand),
-      });
-    }
-    return {
-      type: 'Add',
-      operands: operands,
-    };
-  }
-  return parseMultiplication(input);
-}
-
-function parseMultiplication(input: string): Expression {
-  const multiplyingOperands: string[] = [];
-  const dividingOperands: string[] = [];
-  let nest = 0;
-  let startIndex = 0;
-  let operation = '*';
-  for (let i = startIndex; i < input.length; i++) {
-    const c = input[i];
-    if (c === '(') {
-      nest++;
-      continue;
-    }
-    if (c === ')') {
-      nest--;
-      if (nest < 0) {
-        throw new Error('unmatched bracket');
-      }
-      continue;
-    }
-    if (nest > 0) {
-      continue;
-    }
-    if (c === '*' || c === '/') {
-      const left = input.substring(startIndex, i);
-      if (left.length === 0) {
-        throw new Error(`missing left operand of ${c} operator`);
-      }
-      switch(operation) {
-        case '*':
-          multiplyingOperands.push(left);
-          break;
-        case '/':
-          dividingOperands.push(left);
-          break;
-      }
-      operation = c;
-      startIndex = i + 1;
-    }
-  }
-  if (nest > 0) {
-    throw new Error('unmatched bracket');
-  }
-  if (multiplyingOperands.length > 0 || dividingOperands.length > 0) {
-    const right = input.substring(startIndex);
-    if (right.length === 0) {
-      throw new Error(`missing right operand of ${operation} operator`);
-    }
-    switch(operation) {
-      case '*':
-        multiplyingOperands.push(right);
-        break;
-      case '/':
-        dividingOperands.push(right);
-        break;
-    }
-    const numerators: Expression[] = [];
-    const denominators: Expression[] = [];
-
-    for (const multiplyingOperand of multiplyingOperands) {
-      numerators.push(parseAddition(multiplyingOperand));
-    }
-    for (const dividingOperand of dividingOperands) {
-      denominators.push(parseAddition(dividingOperand));
-    }
-    if (denominators.length === 0) {
-      return {
-        type: 'Multiply',
-        operands: numerators,
-      }
-    }
-    return {
-      type: 'Divide',
+function convertDecimalToDivision(expression: DecimalConstant): Expression {
+  const division: Expression = expression.repeating ? parseRepeatingDecimal(expression.decimalPart) : {
+    type: "Divide",
+    operands: [
+      { value: expression.decimalPart },
+      { value: (10n ** BigInt(expression.decimalPart.length)).toString() },
+    ]
+  };
+  if (expression.integerPart.length > 0) {
+    const addition: BinaryOperation = {
+      type: "Add",
       operands: [
-        {
-          type: 'Multiply',
-          operands: numerators,
-        },
-        {
-          type: 'Multiply',
-          operands: denominators,
-        },
-      ]
-    };
-  }
-  return parsePower(input);
-}
-
-function parsePower(input: string): Expression {
-  let nest = 0;
-  for (let i = 0; i < input.length; i++) {
-    const c = input[i];
-    if (c === '(') {
-      nest++;
-      continue;
-    }
-    if (c === ')') {
-      nest--;
-      if (nest < 0) {
-        throw new Error('unmatched bracket');
-      }
-      continue;
-    }
-    if (nest > 0) {
-      continue;
-    }
-    if (c === '^') {
-      const left = input.substring(0, i);
-      const right = input.substring(i + 1);
-      if (left.length === 0 || right.length === 0) {
-        throw new Error('missing left operand of ^ operator');
-      }
-      return {
-        type: 'Power',
-        operands: [
-          parseAddition(left),
-          parseAddition(right),
-        ],
-      };
-    }
-  }
-  if (nest > 0) {
-    throw new Error('unmatched bracket');
-  }
-  return parseUnaryOperation(input);
-}
-
-function parseUnaryOperation(input: string): Expression {
-  const first = input[0];
-  const right = input.substring(1);
-  const last = input[input.length - 1];
-  const left = input.substring(0, input.length - 1);
-  if (first === '-') {
-    if (right.length === 0) {
-      throw new Error('missing right operand of - operator');
-    }
-    return {
-      type: 'Negate',
-      operand: parseAddition(right),
-    };
-  }
-  if (first === 'S') {
-    if (right.length === 0) {
-      throw new Error('missing operand of S operator');
-    }
-    return {
-      type: 'Sum',
-      operand: parseAddition(right),
-    };
-  }
-  if (first === 'R') {
-    if (right.length === 0) {
-      throw new Error('missing operand of R operator');
-    }
-    return {
-      type: 'Root',
-      operand: parseAddition(right),
-    };
-  }
-  if (first === '(' && last === ')') {
-    if (input.length === 2) {
-      throw new Error('empty bracket');
-    }
-    return parseAddition(input.substring(1, input.length - 1));
-  }
-  if (last === '!') {
-    if (left.length === 0) {
-      throw new Error('missing left operand of ! operator');
-    }
-    return {
-      type: 'Factorial',
-      operand: parseAddition(left),
-    };
-  }
-  if (isInteger(input)) {
-    return {
-      value: input.replace('+', '')
-    };
-  }
-  if (/^[0-9]*\.[0-9]+$/.test(input)) {
-    const integer = input.split('.')[0];
-    const decimal = input.split('.')[1];
-    const division: Expression = {
-      type: 'Divide',
-      operands: [
-        {
-          value: decimal,
-        },
-        {
-          value: (10n ** BigInt(decimal.length)).toString(),
-        }
+        { value: expression.integerPart },
+        division
       ]
     }
-    if (integer.length === 0) {
-      return division;
-    } else {
-      return {
-        type: 'Add',
-        operands: [
-          {
-            value: integer,
-          },
-          division
-        ]
-      }
-    }
+    return addition;
   }
-  if (/^[0-9]*\.\([0-9]+\)$/.test(input)) {
-    const integer = input.split('.')[0];
-    const repeated = input.split('.')[1].replace('(', '').replace(')', '');
-    const division = parseRepeatingDecimal(repeated);
-    if (integer.length === 0) {
-      return division;
-    } else {
-      return {
-        type: 'Add',
-        operands: [
-          {
-            value: integer,
-          },
-          division
-        ]
-      }
-    }
-  }
-
-  throw new Error(`invalid expression: ${input}`);
+  return division;
 }
 
 function parseRepeatingDecimal(input: string): Expression {
@@ -478,4 +190,106 @@ function gcd(a: bigint, b: bigint): bigint {
 function sum(num: string): string {
   const numBigInt = BigInt(num);
   return (numBigInt * (numBigInt + 1n)) / 2n + '';
+}
+
+/**
+ * 独自記法の式を解析し、計算用オブジェクトに変換します。
+ */
+function parse(input: string): Expression {
+  const normalized = input.replace(/\s/g, '')
+    .replace('√', 'R')
+    .replace('∑', 'S')
+    .replace('Σ', 'S')
+    .replace('×', '*')
+    .replace('÷', '/');
+  if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
+    const invalidCharacter = normalized.match(/[^0-9-+/*^SR4!.()]/)?.[0];
+    throw new Error(`invalid character in expression: ${invalidCharacter}`);
+  }
+  if (normalized.length === 0) {
+    throw new Error('empty expression');
+  }
+  return doParse(normalized);
+}
+
+function doParse(input: string): Expression {
+  for (const operators of [['+', '-'], ['*', '/'], ['^']]) {
+    let nest = 0;
+    for (let i = input.length - 1; i >= 0; i--) {
+      const c = input[i];
+      if (c === ')') {
+        nest++;
+        continue;
+      }
+      if (c === '(') {
+        nest--;
+        if (nest < 0) {
+          throw new Error('unmatched bracket');
+        }
+        continue;
+      }
+      if (nest > 0) {
+        continue;
+      }
+      if (i > 0 && operators.includes(c)) {
+        const left = input.substring(0, i);
+        const right = input.substring(i + 1);
+        if (left.length === 0 || right.length === 0) {
+          throw new Error(`missing left operand of ${c} operator`);
+        }
+        return {
+          type: c === '+' ? 'Add' :
+                c === '-' ? 'Subtract' :
+                c === '*' ? 'Multiply' :
+                c === '/' ? 'Divide' : 'Power',
+          operands: [
+            doParse(left),
+            doParse(right),
+          ],
+        }
+      }
+    }
+  }
+  const first = input[0];
+  const right = input.substring(1);
+  const last = input[input.length - 1];
+  const left = input.substring(0, input.length - 1);
+  if (first === '(' && last === ')') {
+    if (input.length === 2) {
+      throw new Error('empty bracket');
+    }
+    return doParse(input.substring(1, input.length - 1));
+  }
+  if (['S', 'R', '-'].includes(first)) {
+    if (right.length === 0) {
+      throw new Error(`missing operand of ${first} operator`);
+    }
+    return {
+      type: first === 'S' ? 'Sum' :
+            first === 'R' ? 'Root' : 'Negate',
+      operand: doParse(right),
+    }
+  }
+  if (last === '!') {
+    if (left.length === 0) {
+      throw new Error('missing left operand of ! operator');
+    }
+    return {
+      type: 'Factorial',
+      operand: doParse(left),
+    };
+  }
+  if (isInteger(input)) {
+    return {
+      value: input.replace('+', '')
+    };
+  }
+  if (isDecimal(input)) {
+    return {
+      repeating: input.includes('('),
+      integerPart: input.split('.')[0],
+      decimalPart: input.split('.')[1].replace('(', '').replace(')', ''),
+    }
+  }
+  throw new Error(`invalid expression: ${input}`);
 }
