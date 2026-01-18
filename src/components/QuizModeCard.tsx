@@ -52,7 +52,7 @@ export default function QuizModeCard(): JSX.Element {
             className="absolute top-0 right-2 text-gray-300 hover:text-red-600 cursor-pointer"
             onClick={handleAnswerButtonClick}
           >
-          see answer
+          See answer
         </div>
         <input
           type="text"

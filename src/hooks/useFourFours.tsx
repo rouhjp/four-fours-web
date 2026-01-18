@@ -55,7 +55,7 @@ export const useFourFours = (question?: number, onSolved?: (input: string) => vo
       setWarning('You must use exactly four 4s in the expression');
     } else {
       if (question != undefined && result && result !== question.toString()) {
-        setWarning('Not matched');
+        setWarning('Incorrect answer');
       } else {
         setWarning(null);
       }

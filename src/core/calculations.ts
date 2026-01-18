@@ -76,17 +76,17 @@ function doEvaluate(expression: Expression): string {
     const operand = doEvaluate(expression.operand);
     switch(expression.type) {
       case "Sum":
-        requireInteger(operand, "the operand of sum operator must be an integer");
-        requirePositiveOrZero(operand, `the operand of sum operator must be a positive integer: ${operand}`);
-        requireMaxDigit(operand, 12, `the operand of sum operator is too big`);
+        requireInteger(operand, "The operand of sum operator must be an integer");
+        requirePositiveOrZero(operand, `The operand of sum operator must be a positive integer: ${operand}`);
+        requireMaxDigit(operand, 12, `The operand of sum operator is too big`);
         return sum(operand);
       case "Factorial":
-        requireInteger(operand, "the operand of factorial operator must be an integer");
-        requirePositiveOrZero(operand, `the operand of factorial operator must be a positive integer: ${operand}`);
-        requireMaxDigit(operand, 2, `the operand of factorial operator is too big`);
+        requireInteger(operand, "The operand of factorial operator must be an integer");
+        requirePositiveOrZero(operand, `The operand of factorial operator must be a positive integer: ${operand}`);
+        requireMaxDigit(operand, 2, `The operand of factorial operator is too big`);
         return evaluateNerdamer(`factorial(${operand})`);
       case "Root":
-        requirePositiveOrZero(operand, `the operand of root operator must be a positive integer: ${operand}`);
+        requirePositiveOrZero(operand, `The operand of root operator must be a positive integer: ${operand}`);
         return evaluateNerdamer(`sqrt(${operand})`);
       case "Negate":
         return evaluateNerdamer(`(-1*(${operand}))`);
@@ -104,20 +104,20 @@ function doEvaluate(expression: Expression): string {
       case "Divide":
         return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('/')}`);
       case "Power":
-        requireMaxDigit(operands[1], 4, `the exponent of power operator is too big`);
+        requireMaxDigit(operands[1], 4, `The exponent of power operator is too big`);
         return evaluateNerdamer(`${operands[0]}^${operands[1]}`);
     }
   }
   if(isConstant(expression)) {
-    requireInteger(expression.value, `invalid constant: ${expression.value}`);
+    requireInteger(expression.value, `Invalid constant: ${expression.value}`);
     return expression.value;
   }
   if(isDecimalConstant(expression)) {
     const converted = convertDecimalToDivision(expression);
     return doEvaluate(converted);
   }
-  console.error(`unexpected evaluation type: ${expression}`);
-  throw new Error('internal error');
+  console.error(`Unexpected evaluation type: ${expression}`);
+  throw new Error('Internal error');
 }
 
 /**
@@ -135,14 +135,14 @@ function evaluateNerdamer(input: string): string {
   } catch (e) {
     if (e instanceof Error) {
       if (e.message.includes('Division by zero')) {
-        throw new Error(`division by zero not allowed`);
+        throw new Error(`Division by zero is not allowed`);
       }
       if (e.message.includes('0^0 is undefined')) {
-        throw new Error(`zero to the power of zero not allowed`);
+        throw new Error(`Zero to the power of zero is undefined`);
       }
     }
     console.error(e);
-    throw new Error(`internal error`);
+    throw new Error(`Internal error`);
   }
 }
 
@@ -204,10 +204,10 @@ function parse(input: string): Expression {
     .replace('÷', '/');
   if (!/^[0-9-+/*^SR4!.()]*$/.test(normalized)) {
     const invalidCharacter = normalized.match(/[^0-9-+/*^SR4!.()]/)?.[0];
-    throw new Error(`invalid character in expression: ${invalidCharacter}`);
+    throw new Error(`Invalid character in expression: ${invalidCharacter}`);
   }
   if (normalized.length === 0) {
-    throw new Error('empty expression');
+    throw new Error('Empty expression');
   }
   return doParse(normalized);
 }
@@ -224,7 +224,7 @@ function doParse(input: string): Expression {
       if (c === '(') {
         nest--;
         if (nest < 0) {
-          throw new Error('unmatched bracket');
+          throw new Error('Unmatched bracket');
         }
         continue;
       }
@@ -235,7 +235,7 @@ function doParse(input: string): Expression {
         const left = input.substring(0, i);
         const right = input.substring(i + 1);
         if (left.length === 0 || right.length === 0) {
-          throw new Error(`missing left operand of ${c} operator`);
+          throw new Error(`Missing operand for ${c} operator`);
         }
         return {
           type: c === '+' ? 'Add' :
@@ -256,13 +256,13 @@ function doParse(input: string): Expression {
   const left = input.substring(0, input.length - 1);
   if (first === '(' && last === ')') {
     if (input.length === 2) {
-      throw new Error('empty bracket');
+      throw new Error('Empty bracket');
     }
     return doParse(input.substring(1, input.length - 1));
   }
   if (['S', 'R', '-'].includes(first)) {
     if (right.length === 0) {
-      throw new Error(`missing operand of ${first} operator`);
+      throw new Error(`Missing operand for ${first} operator`);
     }
     return {
       type: first === 'S' ? 'Sum' :
@@ -272,7 +272,7 @@ function doParse(input: string): Expression {
   }
   if (last === '!') {
     if (left.length === 0) {
-      throw new Error('missing left operand of ! operator');
+      throw new Error('Missing operand for ! operator');
     }
     return {
       type: 'Factorial',
@@ -291,7 +291,7 @@ function doParse(input: string): Expression {
       decimalPart: input.split('.')[1].replace('(', '').replace(')', ''),
     }
   }
-  throw new Error(`invalid expression: ${input}`);
+  throw new Error(`Invalid expression: ${input}`);
 }
 
 
