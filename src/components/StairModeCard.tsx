@@ -5,6 +5,7 @@ import { useFourFours } from "../hooks/useFourFours";
 import { RiArrowLeftDoubleFill, RiArrowLeftSLine, RiArrowRightDoubleFill, RiArrowRightSLine } from "react-icons/ri";
 import { getAnswer } from "../core/answers";
 import { useKaTeX } from "../hooks/useKaTeX";
+import { useEnterToFocus } from "../hooks/useEnterToFocus";
 
 const QUESTION_MIN = 1;
 const QUESTION_MAX = 3000;
@@ -21,6 +22,7 @@ export default function StairModeCard(): JSX.Element {
   });
   const solved = !error && !warning && result === question.toString();
   const [katexHtml, katexRef] = useKaTeX(input);
+  const inputRef = useEnterToFocus<HTMLInputElement>();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef<boolean>(false);
@@ -138,6 +140,7 @@ export default function StairModeCard(): JSX.Element {
           See answer
         </div>
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}

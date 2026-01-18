@@ -4,11 +4,13 @@ import { MdCheckCircle } from "react-icons/md";
 import RuleModal from "./RuleModal";
 import { useFourFours } from "../hooks/useFourFours";
 import { useKaTeX } from "../hooks/useKaTeX";
+import { useEnterToFocus } from "../hooks/useEnterToFocus";
 
 export default function FreeModeCard(): JSX.Element {
   const [input, result, error, warning, handleInputChange] = useFourFours();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [katexHtml, katexRef] = useKaTeX(input);
+  const inputRef = useEnterToFocus<HTMLInputElement>();
 
   return (
     <>
@@ -27,6 +29,7 @@ export default function FreeModeCard(): JSX.Element {
       </p>
 
       <input
+        ref={inputRef}
         type="text"
         value={input}
         onChange={(e) => handleInputChange(e.target.value)}
