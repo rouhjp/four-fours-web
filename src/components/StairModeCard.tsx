@@ -24,11 +24,10 @@ export default function StairModeCard(): JSX.Element {
   const isLongPress = useRef<boolean>(false);
 
   useEffect(() => {
-    handleInputChange("");
-    if (!solved && answers[question]) {
-      handleInputChange(answers[question]);
-    }
-  }, [question, answers, handleInputChange, solved]);
+    const savedAnswer = answers[question] || "";
+    handleInputChange(savedAnswer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question]);
 
   const handleMouseDown = (update: () => void) => {
     isLongPress.current = false;
