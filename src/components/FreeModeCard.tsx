@@ -15,6 +15,10 @@ export default function FreeModeCard(): JSX.Element {
 
   return (
     <>
+      <p className={`text-3xl font-bold text-center ${!input || error ? "text-gray-300" : "text-gray-800"} mb-6 h-12`}>
+        {result !== null ? result : '?'}
+      </p>
+
       <div className="text-center mb-4 text-xl text-gray-700 h-16 flex items-center justify-center bg-gray-100 overflow-hidden">
         {katexHtml && (
           <div
@@ -24,10 +28,6 @@ export default function FreeModeCard(): JSX.Element {
           />
         )}
       </div>
-
-      <p className={`text-3xl font-bold text-center ${!input || error ? "text-gray-300" : "text-gray-800"} mb-6 h-12`}>
-        {result !== null ? result : '?'}
-      </p>
 
       <input
         ref={inputRef}

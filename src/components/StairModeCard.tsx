@@ -141,6 +141,9 @@ export default function StairModeCard(): JSX.Element {
         </button>
       </div>
       <h1 className="text-2xl font-bold text-center mb-2">{question}</h1>
+      <p className={`text-3xl font-bold text-center ${solved ? "text-green-600" : (!input || error ? "text-gray-300" : "text-yellow-600")} mb-6 h-12`}>
+        {result !== null ? result : "?"}
+      </p>
       <div className="text-center mb-4 text-xl text-gray-700 h-16 flex items-center justify-center bg-gray-100 overflow-hidden">
         {katexHtml && (
           <div
@@ -150,9 +153,6 @@ export default function StairModeCard(): JSX.Element {
           />
         )}
       </div>
-      <p className={`text-3xl font-bold text-center ${solved ? "text-green-600" : (!input || error ? "text-gray-300" : "text-yellow-600")} mb-6 h-12`}>
-        {result !== null ? result : "?"}
-      </p>
 
       <div className="relative">
         <div 
