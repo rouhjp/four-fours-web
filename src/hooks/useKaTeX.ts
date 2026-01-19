@@ -27,17 +27,27 @@ export function useKaTeX(input: string): [string, React.RefObject<HTMLDivElement
     const parent = container.parentElement;
     if (!parent) return;
 
-    container.style.transform = 'scale(1)';
+    const adjustScale = () => {
+      container.style.transform = 'scale(1)';
 
-    requestAnimationFrame(() => {
-      const parentWidth = parent.clientWidth - 16;
-      const contentWidth = container.scrollWidth;
+      requestAnimationFrame(() => {
+        const parentWidth = parent.clientWidth - 16;
+        const contentWidth = container.scrollWidth;
 
-      if (contentWidth > parentWidth) {
-        const scale = parentWidth / contentWidth;
-        container.style.transform = `scale(${scale})`;
-      }
+        if (contentWidth > parentWidth) {
+          const scale = parentWidth / contentWidth;
+          container.style.transform = `scale(${scale})`;
+        }
+      });
+    };
+
+    const observer = new ResizeObserver(() => {
+      adjustScale();
     });
+    observer.observe(container);
+    adjustScale();
+    
+    return () => observer.disconnect();
   }, [html]);
 
   return [html, containerRef];
