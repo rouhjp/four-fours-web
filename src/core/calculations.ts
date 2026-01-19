@@ -339,7 +339,7 @@ function toKaTeX(expr: Expression): string {
     const operand = toKaTeX(expr.operand);
     switch (expr.type) {
       case "Sum":
-        return `\\sum ${wrapIfNeeded(expr.operand, operand)}`;
+        return `\\textstyle \\sum ${wrapIfNeeded(expr.operand, operand)}`;
       case "Root":
         return `\\sqrt{${operand}}`;
       case "Factorial":
