@@ -61,77 +61,9 @@ function requireMaxDigit(value: string, maxDigits: number, message: string) {
  */
 export function evaluate(input: string) {
   const parsed = parse(input);
-  const evaluated = doEvaluate(parsed);
-  if (!isInteger(evaluated)) {
-    return nerdamer(evaluated).evaluate().text('decimals');
-  }
-  return evaluated;
-}
-
-/**
- * 計算用オブジェクトを評価し、計算結果を返します。
- */
-function doEvaluate(expression: Expression): string {
-  if(isUnaryOperation(expression)) {
-    const operand = doEvaluate(expression.operand);
-    switch(expression.type) {
-      case "Sum":
-        requireInteger(operand, "The operand of sum operator must be an integer");
-        requirePositiveOrZero(operand, `The operand of sum operator must be a positive integer: ${operand}`);
-        requireMaxDigit(operand, 12, `The operand of sum operator is too big`);
-        return evaluateNerdamer(`${operand}*(${operand}+1)/2`);
-      case "Factorial":
-        requireInteger(operand, "The operand of factorial operator must be an integer");
-        requirePositiveOrZero(operand, `The operand of factorial operator must be a positive integer: ${operand}`);
-        requireMaxDigit(operand, 2, `The operand of factorial operator is too big`);
-        return evaluateNerdamer(`factorial(${operand})`);
-      case "Root":
-        requirePositiveOrZero(operand, `The operand of root operator must be a positive integer: ${operand}`);
-        return evaluateNerdamer(`sqrt(${operand})`);
-      case "Negate":
-        return evaluateNerdamer(`(-1*(${operand}))`);
-    }
-  }
-  if(isBinaryOperation(expression)) {
-    const [a, b] = expression.operands.map(operand => doEvaluate(operand));
-    switch(expression.type) {
-      case "Add":
-        return evaluateNerdamer(`(${a})+(${b})`);
-      case "Subtract":
-        return evaluateNerdamer(`(${a})-(${b})`);
-      case "Multiply":
-        return evaluateNerdamer(`(${a})*(${b})`);
-      case "Divide":
-        return evaluateNerdamer(`(${a})/(${b})`);
-      case "Power":
-        requireMaxDigit(b, 4, `The exponent of power operator is too big`);
-        return evaluateNerdamer(`(${a})^(${b})`);
-    }
-  }
-  if(isConstant(expression)) {
-    requireInteger(expression.value, `Invalid constant: ${expression.value}`);
-    return expression.value;
-  }
-  if(isDecimalConstant(expression)) {
-    const converted = convertDecimalToDivision(expression);
-    return doEvaluate(converted);
-  }
-  console.error(`Unexpected evaluation type: ${expression}`);
-  throw new Error('Internal error');
-}
-
-/**
- * nerdamer を利用して式を評価します。
- * nerdamer による評価後が整数であれば評価した値を、
- * そうでない場合は nerdamer の式を返します。
- */
-function evaluateNerdamer(input: string): string {
+  const nerdamerString = toNerdamerString(parsed);
   try {
-    const evaluated = nerdamer(input).evaluate().text('fractions');
-    if (isInteger(evaluated)) {
-      return evaluated;
-    }
-    return nerdamer(input).text('fractions');
+    return nerdamer(nerdamerString).evaluate().text('decimals');
   } catch (e) {
     if (e instanceof Error) {
       if (e.message.includes('Division by zero')) {
@@ -144,6 +76,55 @@ function evaluateNerdamer(input: string): string {
     console.error(e);
     throw new Error(`Internal error`);
   }
+}
+
+function toNerdamerString(expression: Expression): string {
+  if (isUnaryOperation(expression)) {
+    const operand = toNerdamerString(expression.operand);
+    const operandValue = nerdamer(operand).evaluate().text('fractions');
+    switch (expression.type) {
+      case "Sum":
+        requireInteger(operandValue, "The operand of sum operator must be an integer");
+        requirePositiveOrZero(operandValue, `The operand of sum operator must be a positive integer: ${operandValue}`);
+        requireMaxDigit(operandValue, 12, `The operand of sum operator is too big`);
+        return `(${operand})*(${operand}+1)/2`;
+      case "Factorial":
+        requireInteger(operandValue, "The operand of factorial operator must be an integer");
+        requirePositiveOrZero(operandValue, `The operand of factorial operator must be a positive integer: ${operandValue}`);
+        requireMaxDigit(operandValue, 2, `The operand of factorial operator is too big`);
+        return `factorial(${operand})`;
+      case "Root":
+        requirePositiveOrZero(operandValue, `The operand of root operator must be a positive integer: ${operandValue}`);
+        return `sqrt(${operand})`;
+      case "Negate":
+        return `(-1*(${operand}))`;
+    }
+  }
+  if (isBinaryOperation(expression)) {
+    const [a, b] = expression.operands.map(toNerdamerString);
+    const bValue = nerdamer(b).evaluate().text('fractions');
+    switch (expression.type) {
+      case "Add":
+        return `(${a})+(${b})`;
+      case "Subtract":
+        return `(${a})-(${b})`;
+      case "Multiply":
+        return `(${a})*(${b})`;
+      case "Divide":
+        return `(${a})/(${b})`;
+      case "Power":
+        requireMaxDigit(bValue, 4, `The exponent of power operator is too big`);
+        return `(${a})^(${b})`;
+    }
+  }
+  if (isConstant(expression)) {
+    return expression.value;
+  }
+  if (isDecimalConstant(expression)) {
+    const converted = convertDecimalToDivision(expression);
+    return toNerdamerString(converted);
+  }
+  throw new Error('Internal error');
 }
 
 function convertDecimalToDivision(expression: DecimalConstant): Expression {
