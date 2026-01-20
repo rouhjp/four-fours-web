@@ -79,7 +79,7 @@ function doEvaluate(expression: Expression): string {
         requireInteger(operand, "The operand of sum operator must be an integer");
         requirePositiveOrZero(operand, `The operand of sum operator must be a positive integer: ${operand}`);
         requireMaxDigit(operand, 12, `The operand of sum operator is too big`);
-        return sum(operand);
+        return evaluateNerdamer(`${operand}*(${operand}+1)/2`);
       case "Factorial":
         requireInteger(operand, "The operand of factorial operator must be an integer");
         requirePositiveOrZero(operand, `The operand of factorial operator must be a positive integer: ${operand}`);
@@ -93,19 +93,19 @@ function doEvaluate(expression: Expression): string {
     }
   }
   if(isBinaryOperation(expression)) {
-    const operands = expression.operands.map(operand => doEvaluate(operand));
+    const [a, b] = expression.operands.map(operand => doEvaluate(operand));
     switch(expression.type) {
       case "Add":
-        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('+')}`);
+        return evaluateNerdamer(`(${a})+(${b})`);
       case "Subtract":
-        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('-')}`);
+        return evaluateNerdamer(`(${a})-(${b})`);
       case "Multiply":
-        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('*')}`);
+        return evaluateNerdamer(`(${a})*(${b})`);
       case "Divide":
-        return evaluateNerdamer(`${operands.map(o=>'(' + o + ')').join('/')}`);
+        return evaluateNerdamer(`(${a})/(${b})`);
       case "Power":
-        requireMaxDigit(operands[1], 4, `The exponent of power operator is too big`);
-        return evaluateNerdamer(`${operands[0]}^${operands[1]}`);
+        requireMaxDigit(b, 4, `The exponent of power operator is too big`);
+        return evaluateNerdamer(`(${a})^(${b})`);
     }
   }
   if(isConstant(expression)) {
@@ -185,11 +185,6 @@ function parseRepeatingDecimal(input: string): Expression {
 
 function gcd(a: bigint, b: bigint): bigint {
   return b === BigInt(0) ? a : gcd(b, a % b);
-}
-
-function sum(num: string): string {
-  const numBigInt = BigInt(num);
-  return (numBigInt * (numBigInt + 1n)) / 2n + '';
 }
 
 /**
